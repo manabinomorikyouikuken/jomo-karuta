@@ -177,6 +177,7 @@ export default function App() {
         )}
         {view === 'flash' && flashOrder.length > 0 && (
           <FlashView
+            key={flashIndex}
             card={flashOrder[flashIndex]}
             index={flashIndex}
             total={flashOrder.length}
@@ -267,11 +268,6 @@ function DetailView({ card, onBack }) {
 function FlashView({ card, index, total, onNext, onExit }) {
   const [revealed, setRevealed] = useState(false);
 
-  const handleNext = () => {
-    setRevealed(false);
-    onNext();
-  };
-
   return (
     <div className="max-w-xl mx-auto">
       <div className="flex justify-between items-center mb-4 text-sm text-stone-500">
@@ -304,7 +300,7 @@ function FlashView({ card, index, total, onNext, onExit }) {
       {/* 次へボタン（読み札表示後に出現） */}
       <div className={`mt-6 flex gap-4 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <button onClick={onExit} className="flex-1 py-3 border border-stone-300 bg-white text-sm">やめる</button>
-        <button onClick={handleNext} className="flex-1 py-3 bg-stone-900 text-stone-50">次のカード →</button>
+        <button onClick={onNext} className="flex-1 py-3 bg-stone-900 text-stone-50">次のカード →</button>
       </div>
     </div>
   );
