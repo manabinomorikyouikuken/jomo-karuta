@@ -65,8 +65,6 @@ const CATEGORIES = {
   bunka:    { label: '文化', color: 'bg-rose-100 text-rose-900 border-rose-300' },
 };
 
-const BATTLE_LENGTH = 10;
-
 const DIFFICULTY = {
   easy:   { label: 'かんたん', choices: 2, desc: '2択' },
   normal: { label: 'ふつう',   choices: 4, desc: '4択' },
@@ -135,34 +133,6 @@ export default function App() {
   const [flashIndex, setFlashIndex] = useState(0);
   const [flashOrder, setFlashOrder] = useState([]);
 
-  // battle state
-  const [battleScore, setBattleScore] = useState({ p1: 0, p2: 0 });
-  const [battleRound, setBattleRound] = useState(0);
-  const [battleCards, setBattleCards] = useState([]);
-  const [battleTime, setBattleTime] = useState(3);
-  const [p1Name, setP1Name] = useState('プレイヤー1');
-  const [pcLevel, setPcLevel] = useState('normal');
-
-  const startBattle = () => {
-    const cards = [...CARDS].sort(() => Math.random() - 0.5);
-    setBattleCards(cards);
-    setBattleScore({ p1: 0, p2: 0 });
-    setBattleRound(0);
-    setView('battle');
-  };
-
-  const onBattleResult = (winner) => {
-    if (winner === 'p1') setBattleScore(s => ({ ...s, p1: s.p1 + 1 }));
-    if (winner === 'p2') setBattleScore(s => ({ ...s, p2: s.p2 + 1 }));
-    setBattleRound(r => {
-      if (r + 1 >= BATTLE_LENGTH) {
-        setTimeout(() => setView('battle-result'), 800);
-        return r;
-      }
-      return r + 1;
-    });
-  };
-
   const startFlash = () => {
     const order = [...CARDS].sort(() => Math.random() - 0.5);
     setFlashOrder(order);
@@ -192,9 +162,7 @@ export default function App() {
               className={`px-3 py-1.5 border ${view === 'list' ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300'}`}>一覧</button>
             <button onClick={() => startFlash()}
               className={`px-3 py-1.5 border ${view === 'flash' ? 'bg-amber-700 text-stone-50 border-amber-700' : 'bg-white border-stone-300'}`}>フラッシュ</button>
-            <button onClick={() => setView('battle-setup')}
-              className={`px-3 py-1.5 border ${view === 'battle' ? 'bg-blue-700 text-stone-50 border-blue-700' : 'bg-white border-stone-300'}`}>対戦</button>
-            <button onClick={() => setView('quiz-select')}
+<button onClick={() => setView('quiz-select')}
               className={`px-3 py-1.5 border ${view === 'quiz' ? 'bg-red-700 text-stone-50 border-red-700' : 'bg-white border-stone-300'}`}>クイズ</button>
           </nav>
         </div>
@@ -217,35 +185,7 @@ export default function App() {
             onExit={() => setView('list')}
           />
         )}
-        {view === 'battle-setup' && (
-          <BattleSetup
-            battleTime={battleTime} setBattleTime={setBattleTime}
-            p1Name={p1Name} setP1Name={setP1Name}
-            pcLevel={pcLevel} setPcLevel={setPcLevel}
-            onStart={startBattle}
-          />
-        )}
-        {view === 'battle' && battleCards.length > 0 && (
-          <BattleRound
-            key={battleRound}
-            card={battleCards[battleRound % battleCards.length]}
-            round={battleRound}
-            total={BATTLE_LENGTH}
-            score={battleScore}
-            p1Name={p1Name}
-            battleTime={battleTime}
-            pcLevel={pcLevel}
-            onResult={onBattleResult}
-            onExit={() => setView('list')}
-          />
-        )}
-        {view === 'battle-result' && (
-          <BattleResult
-            score={battleScore} p1Name={p1Name}
-            onRetry={startBattle} onHome={() => setView('list')}
-          />
-        )}
-        {view === 'quiz-select' && (
+{view === 'quiz-select' && (
           <QuizSelect difficulty={difficulty} setDifficulty={setDifficulty} onStart={startQuiz} />
         )}
         {view === 'quiz' && quizCard && (
@@ -363,192 +303,6 @@ function FlashView({ card, index, total, onNext, onExit }) {
       <div className={`mt-6 flex gap-4 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <button onClick={onExit} className="flex-1 py-3 border border-stone-300 bg-white text-sm">やめる</button>
         <button onClick={onNext} className="flex-1 py-3 bg-stone-900 text-stone-50">次のカード →</button>
-      </div>
-    </div>
-  );
-}
-
-const PC_LEVELS = {
-  easy:   { label: 'よわい', range: [0.75, 1.0] },
-  normal: { label: 'ふつう', range: [0.45, 0.75] },
-  hard:   { label: 'つよい', range: [0.15, 0.45] },
-};
-
-function BattleSetup({ battleTime, setBattleTime, p1Name, setP1Name, pcLevel, setPcLevel, onStart }) {
-  return (
-    <div className="max-w-md mx-auto">
-      <h2 className="text-2xl mb-8 text-center">CPU対戦設定</h2>
-
-      <div className="bg-white border border-stone-300 p-6 mb-4 space-y-5">
-        {/* 制限時間 */}
-        <div>
-          <label className="text-sm text-stone-600 block mb-2">制限時間：<span className="font-bold text-stone-900 text-lg">{battleTime}秒</span></label>
-          <input type="range" min={1} max={10} value={battleTime}
-            onChange={e => setBattleTime(Number(e.target.value))}
-            className="w-full accent-red-700" />
-          <div className="flex justify-between text-xs text-stone-400 mt-1"><span>1秒</span><span>10秒</span></div>
-        </div>
-
-        {/* CPU強さ */}
-        <div>
-          <label className="text-sm text-stone-600 block mb-2">CPUの強さ</label>
-          <div className="grid grid-cols-3 gap-2">
-            {Object.entries(PC_LEVELS).map(([key, { label }]) => (
-              <button key={key} onClick={() => setPcLevel(key)}
-                className={`py-2 border text-sm ${pcLevel === key ? 'bg-blue-700 text-stone-50 border-blue-700' : 'bg-white border-stone-300'}`}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* プレイヤー名 */}
-        <div>
-          <label className="text-xs text-stone-500 block mb-1">あなたの名前</label>
-          <input value={p1Name} onChange={e => setP1Name(e.target.value)}
-            className="w-full border border-stone-300 px-3 py-2 text-sm" maxLength={8} />
-        </div>
-      </div>
-
-      <p className="text-xs text-stone-500 text-center mb-6">
-        頭文字を見てカウントダウン開始。先に押した方が得点。<br/>時間切れは0点。{BATTLE_LENGTH}問勝負。
-      </p>
-      <button onClick={onStart} className="w-full py-3 bg-blue-700 text-stone-50 text-lg">対戦スタート</button>
-    </div>
-  );
-}
-
-function BattleRound({ card, round, total, score, p1Name, battleTime, pcLevel, onResult, onExit }) {
-  const [countdown, setCountdown] = useState(battleTime);
-  const [winner, setWinner] = useState(null); // 'p1' | 'p2' | 'timeout'
-  const intervalRef = useRef(null);
-  const pcTimerRef = useRef(null);
-
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) {
-          clearInterval(intervalRef.current);
-          setWinner(prev => prev ?? 'timeout');
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
-
-    // CPUの自動押し
-    const [lo, hi] = PC_LEVELS[pcLevel].range;
-    const pcDelay = battleTime * (lo + Math.random() * (hi - lo)) * 1000;
-    pcTimerRef.current = setTimeout(() => {
-      setWinner(prev => prev === null ? 'p2' : prev);
-    }, pcDelay);
-
-    return () => {
-      clearInterval(intervalRef.current);
-      clearTimeout(pcTimerRef.current);
-    };
-  }, []);
-
-  const press = (player) => {
-    if (winner !== null) return;
-    clearInterval(intervalRef.current);
-    setWinner(player);
-  };
-
-  useEffect(() => {
-    if (winner !== null) {
-      const t = setTimeout(() => onResult(winner === 'timeout' ? null : winner), 1200);
-      return () => clearTimeout(t);
-    }
-  }, [winner]);
-
-  const timerColor = countdown <= 1 ? 'text-red-700' : countdown <= 2 ? 'text-amber-600' : 'text-stone-700';
-
-  return (
-    <div className="max-w-2xl mx-auto">
-      {/* ヘッダー */}
-      <div className="flex justify-between items-center mb-4 text-sm text-stone-500">
-        <button onClick={onExit}>← やめる</button>
-        <span>{round + 1} / {total}問</span>
-      </div>
-
-      {/* スコア */}
-      <div className="grid grid-cols-2 gap-2 mb-6 text-center">
-        <div className={`py-2 border ${winner === 'p1' ? 'bg-blue-100 border-blue-500' : 'border-stone-300'}`}>
-          <div className="text-xs text-stone-500">{p1Name}</div>
-          <div className="text-2xl font-bold">{score.p1}</div>
-        </div>
-        <div className={`py-2 border ${winner === 'p2' ? 'bg-blue-100 border-blue-500' : 'border-stone-300'}`}>
-          <div className="text-xs text-stone-500">🤖 CPU</div>
-          <div className="text-2xl font-bold">{score.p2}</div>
-        </div>
-      </div>
-
-      {/* カード */}
-      <div className="bg-white border-2 border-stone-300 flex flex-col items-center justify-center min-h-52 py-10 mb-2">
-        <div className="text-[8rem] leading-none text-red-700 font-bold">{card.kana}</div>
-        {winner && (
-          <div className="mt-4 text-center transition-opacity duration-300">
-            <p className="text-xl">{card.verse}</p>
-          </div>
-        )}
-      </div>
-
-      {/* タイマー */}
-      <div className={`text-center text-4xl font-bold mb-6 ${timerColor}`}>
-        {winner === 'timeout' ? '時間切れ' : winner ? '✓' : countdown}
-      </div>
-
-      {/* 早押しボタン */}
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={() => press('p1')}
-          disabled={winner !== null}
-          className={`py-10 text-xl font-bold border-2 transition-all ${
-            winner === 'p1' ? 'bg-blue-600 text-white border-blue-600' :
-            winner ? 'bg-stone-100 text-stone-400 border-stone-200' :
-            'bg-white border-blue-400 hover:bg-blue-50 active:bg-blue-100'
-          }`}>
-          {winner === 'p1' ? '✓ 得点！' : p1Name}
-        </button>
-
-        <div className={`py-10 text-xl font-bold border-2 text-center flex items-center justify-center transition-all ${
-          winner === 'p2' ? 'bg-red-600 text-white border-red-600' :
-          winner ? 'bg-stone-100 text-stone-400 border-stone-200' :
-          'bg-stone-50 border-stone-300 text-stone-400'
-        }`}>
-          {winner === 'p2' ? '🤖 CPU 得点！' : '🤖 CPU'}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BattleResult({ score, p1Name, onRetry, onHome }) {
-  const draw = score.p1 === score.p2;
-  const winner = score.p1 > score.p2 ? p1Name : 'CPU';
-
-  return (
-    <div className="max-w-md mx-auto text-center">
-      <h2 className="text-2xl mb-8">対戦結果</h2>
-      <div className="bg-white border border-stone-300 p-10 mb-6">
-        <div className="text-3xl font-bold mb-6">
-          {draw ? '引き分け！' : `${winner} の勝ち！🏆`}
-        </div>
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <div className="text-sm text-stone-500 mb-1">{p1Name}</div>
-            <div className="text-5xl font-bold text-blue-700">{score.p1}</div>
-          </div>
-          <div>
-            <div className="text-sm text-stone-500 mb-1">🤖 CPU</div>
-            <div className="text-5xl font-bold text-blue-700">{score.p2}</div>
-          </div>
-        </div>
-      </div>
-      <div className="flex gap-4">
-        <button onClick={onHome} className="flex-1 py-3 border border-stone-300 bg-white">一覧に戻る</button>
-        <button onClick={onRetry} className="flex-1 py-3 bg-blue-700 text-stone-50">もう一度</button>
       </div>
     </div>
   );
