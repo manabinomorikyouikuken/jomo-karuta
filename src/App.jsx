@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 
 // =====================================================================
 // 上毛かるた アプリ
@@ -129,6 +129,25 @@ export default function App() {
     setQuizScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
   };
 
+  // flash state
+  const [flashIndex, setFlashIndex] = useState(0);
+  const [flashOrder, setFlashOrder] = useState([]);
+
+  const startFlash = () => {
+    const order = [...CARDS].sort(() => Math.random() - 0.5);
+    setFlashOrder(order);
+    setFlashIndex(0);
+    setView('flash');
+  };
+
+  const nextFlash = () => {
+    if (flashIndex + 1 >= flashOrder.length) {
+      startFlash();
+    } else {
+      setFlashIndex(i => i + 1);
+    }
+  };
+
   const openCard = (card) => { setSelectedCard(card); setView('detail'); };
 
   return (
@@ -141,6 +160,8 @@ export default function App() {
           <nav className="flex gap-2 text-sm flex-wrap">
             <button onClick={() => setView('list')}
               className={`px-3 py-1.5 border ${view === 'list' ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300'}`}>一覧</button>
+            <button onClick={() => startFlash()}
+              className={`px-3 py-1.5 border ${view === 'flash' ? 'bg-amber-700 text-stone-50 border-amber-700' : 'bg-white border-stone-300'}`}>フラッシュ</button>
             <button onClick={() => setView('quiz-select')}
               className={`px-3 py-1.5 border ${view === 'quiz' ? 'bg-red-700 text-stone-50 border-red-700' : 'bg-white border-stone-300'}`}>クイズ</button>
           </nav>
@@ -153,6 +174,15 @@ export default function App() {
         )}
         {view === 'detail' && selectedCard && (
           <DetailView card={selectedCard} onBack={() => setView('list')} />
+        )}
+        {view === 'flash' && flashOrder.length > 0 && (
+          <FlashView
+            card={flashOrder[flashIndex]}
+            index={flashIndex}
+            total={flashOrder.length}
+            onNext={nextFlash}
+            onExit={() => setView('list')}
+          />
         )}
         {view === 'quiz-select' && (
           <QuizSelect difficulty={difficulty} setDifficulty={setDifficulty} onStart={startQuiz} />
@@ -229,6 +259,61 @@ function DetailView({ card, onBack }) {
         </div>
         <h2 className="text-xl font-bold mb-2">{card.topic}</h2>
         <p className="text-stone-700 leading-relaxed">{card.desc}</p>
+      </div>
+    </div>
+  );
+}
+
+function FlashView({ card, index, total, onNext, onExit }) {
+  const [revealed, setRevealed] = useState(false);
+  const timerRef = useRef(null);
+
+  // カードが変わるたびにリセット＆タイマー再起動
+  useEffect(() => {
+    setRevealed(false);
+    timerRef.current = setTimeout(() => setRevealed(true), 3000);
+    return () => clearTimeout(timerRef.current);
+  }, [card]);
+
+  const revealNow = () => {
+    clearTimeout(timerRef.current);
+    setRevealed(true);
+  };
+
+  return (
+    <div className="max-w-xl mx-auto">
+      <div className="flex justify-between items-center mb-4 text-sm text-stone-500">
+        <button onClick={onExit}>← やめる</button>
+        <span>{index + 1} / {total}</span>
+      </div>
+
+      {/* カード本体 */}
+      <div
+        onClick={!revealed ? revealNow : undefined}
+        className={`bg-white border-2 rounded-sm flex flex-col items-center justify-center cursor-pointer select-none transition-all
+          ${revealed ? 'border-stone-300 min-h-64 py-12' : 'border-amber-400 min-h-64 py-12 hover:border-amber-600'}`}
+      >
+        {/* 頭文字（常に表示） */}
+        <div className="text-[9rem] leading-none text-red-700 font-bold mb-4">
+          {card.kana}
+        </div>
+
+        {/* 読み札（3秒後またはタップで表示） */}
+        <div className={`text-center px-8 transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
+          <p className="text-2xl mb-3 leading-relaxed">{card.verse}</p>
+          <p className="text-sm text-stone-500">{card.topic}</p>
+        </div>
+
+        {/* タップ促しヒント */}
+        {!revealed && (
+          <p className="text-xs text-amber-600 mt-6 animate-pulse">タップで表示 / 3秒後に自動表示</p>
+        )}
+      </div>
+
+      {/* 次へボタン（読み札表示後に出現） */}
+      <div className={`mt-6 flex gap-4 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <button onClick={onExit} className="flex-1 py-3 border border-stone-300 bg-white text-sm">やめる</button>
+        <button onClick={onNext} className="flex-1 py-3 bg-stone-900 text-stone-50">次のカード →</button>
       </div>
     </div>
   );
