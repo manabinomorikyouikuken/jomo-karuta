@@ -288,8 +288,7 @@ function FlashView({ card, index, total, onNext, onExit }) {
 
         {/* 読み札（タップで表示） */}
         <div className={`text-center px-8 transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
-          <p className="text-2xl mb-3 leading-relaxed">{card.verse}</p>
-          <p className="text-sm text-stone-500">{card.topic}</p>
+          <p className="text-2xl leading-relaxed">{card.verse}</p>
         </div>
 
         {!revealed && (
