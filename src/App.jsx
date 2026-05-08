@@ -266,19 +266,10 @@ function DetailView({ card, onBack }) {
 
 function FlashView({ card, index, total, onNext, onExit }) {
   const [revealed, setRevealed] = useState(false);
-  const timerRef = useRef(null);
 
-  // カードが変わるたびにリセット＆タイマー再起動
   useEffect(() => {
     setRevealed(false);
-    timerRef.current = setTimeout(() => setRevealed(true), 3000);
-    return () => clearTimeout(timerRef.current);
   }, [card]);
-
-  const revealNow = () => {
-    clearTimeout(timerRef.current);
-    setRevealed(true);
-  };
 
   return (
     <div className="max-w-xl mx-auto">
@@ -289,24 +280,23 @@ function FlashView({ card, index, total, onNext, onExit }) {
 
       {/* カード本体 */}
       <div
-        onClick={!revealed ? revealNow : undefined}
-        className={`bg-white border-2 rounded-sm flex flex-col items-center justify-center cursor-pointer select-none transition-all
-          ${revealed ? 'border-stone-300 min-h-64 py-12' : 'border-amber-400 min-h-64 py-12 hover:border-amber-600'}`}
+        onClick={!revealed ? () => setRevealed(true) : undefined}
+        className={`bg-white border-2 rounded-sm flex flex-col items-center justify-center select-none transition-all min-h-64 py-12
+          ${!revealed ? 'cursor-pointer border-amber-400 hover:border-amber-600' : 'border-stone-300'}`}
       >
         {/* 頭文字（常に表示） */}
         <div className="text-[9rem] leading-none text-red-700 font-bold mb-4">
           {card.kana}
         </div>
 
-        {/* 読み札（3秒後またはタップで表示） */}
+        {/* 読み札（タップで表示） */}
         <div className={`text-center px-8 transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
           <p className="text-2xl mb-3 leading-relaxed">{card.verse}</p>
           <p className="text-sm text-stone-500">{card.topic}</p>
         </div>
 
-        {/* タップ促しヒント */}
         {!revealed && (
-          <p className="text-xs text-amber-600 mt-6 animate-pulse">タップで表示 / 3秒後に自動表示</p>
+          <p className="text-xs text-amber-600 mt-6 animate-pulse">タップして読み札を表示</p>
         )}
       </div>
 
