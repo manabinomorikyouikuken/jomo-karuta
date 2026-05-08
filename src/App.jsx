@@ -313,7 +313,6 @@ function FilterButton({ label, active, onClick }) {
 function DetailView({ card, onBack }) {
   return (
     <div className="max-w-2xl mx-auto">
-      <button onClick={onBack} className="text-sm text-stone-600 hover:text-stone-900 mb-6">← 一覧に戻る</button>
       <div className="bg-white border border-stone-300 p-8 sm:p-12">
         <div className="text-8xl text-red-700 mb-6 text-center">{card.kana}</div>
         <div className="text-2xl text-center mb-4">{card.verse}</div>
@@ -323,6 +322,10 @@ function DetailView({ card, onBack }) {
         <h2 className="text-xl font-bold mb-2">{card.topic}</h2>
         <p className="text-stone-700 leading-relaxed">{card.desc}</p>
       </div>
+      <button onClick={onBack}
+        className="w-full mt-4 py-4 border border-stone-300 bg-white text-stone-700 hover:bg-stone-50 text-sm">
+        ← 一覧に戻る
+      </button>
     </div>
   );
 }
