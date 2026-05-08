@@ -65,33 +65,66 @@ const CATEGORIES = {
   bunka:    { label: '文化', color: 'bg-rose-100 text-rose-900 border-rose-300' },
 };
 
+const DIFFICULTY = {
+  easy:   { label: 'かんたん', choices: 2, desc: '2択' },
+  normal: { label: 'ふつう',   choices: 4, desc: '4択' },
+  hard:   { label: 'むずかしい', choices: 6, desc: '6択' },
+};
+const QUIZ_LENGTH = 10;
+
 export default function App() {
   const [view, setView] = useState('list');
   const [selectedCard, setSelectedCard] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [difficulty, setDifficulty] = useState('normal');
+
+  // quiz state
   const [quizCard, setQuizCard] = useState(null);
   const [quizChoices, setQuizChoices] = useState([]);
   const [quizResult, setQuizResult] = useState(null);
   const [quizScore, setQuizScore] = useState({ correct: 0, total: 0 });
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
 
   const filteredCards = useMemo(
     () => filter === 'all' ? CARDS : CARDS.filter(c => c.category === filter),
     [filter]
   );
 
-  const startQuiz = () => {
+  const buildQuestion = (diff = difficulty) => {
     const card = CARDS[Math.floor(Math.random() * CARDS.length)];
+    const n = DIFFICULTY[diff].choices;
     const wrong = CARDS.filter(c => c.kana !== card.kana)
-      .sort(() => Math.random() - 0.5).slice(0, 3);
-    const choices = [card, ...wrong].sort(() => Math.random() - 0.5);
+      .sort(() => Math.random() - 0.5).slice(0, n - 1);
+    return {
+      card,
+      choices: [card, ...wrong].sort(() => Math.random() - 0.5),
+    };
+  };
+
+  const startQuiz = (diff = difficulty) => {
+    const { card, choices } = buildQuestion(diff);
     setQuizCard(card);
     setQuizChoices(choices);
     setQuizResult(null);
+    setQuizScore({ correct: 0, total: 0 });
+    setCombo(0);
+    setMaxCombo(0);
     setView('quiz');
+  };
+
+  const nextQuestion = () => {
+    const { card, choices } = buildQuestion();
+    setQuizCard(card);
+    setQuizChoices(choices);
+    setQuizResult(null);
   };
 
   const answerQuiz = (kana) => {
     const correct = kana === quizCard.kana;
+    const newCombo = correct ? combo + 1 : 0;
+    setCombo(newCombo);
+    setMaxCombo(m => Math.max(m, newCombo));
     setQuizResult(correct);
     setQuizScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
   };
@@ -105,10 +138,10 @@ export default function App() {
           <h1 className="text-2xl tracking-wider">
             <span className="text-red-700">上毛</span>かるた
           </h1>
-          <nav className="flex gap-2 text-sm">
+          <nav className="flex gap-2 text-sm flex-wrap">
             <button onClick={() => setView('list')}
               className={`px-3 py-1.5 border ${view === 'list' ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300'}`}>一覧</button>
-            <button onClick={startQuiz}
+            <button onClick={() => setView('quiz-select')}
               className={`px-3 py-1.5 border ${view === 'quiz' ? 'bg-red-700 text-stone-50 border-red-700' : 'bg-white border-stone-300'}`}>クイズ</button>
           </nav>
         </div>
@@ -121,9 +154,22 @@ export default function App() {
         {view === 'detail' && selectedCard && (
           <DetailView card={selectedCard} onBack={() => setView('list')} />
         )}
+        {view === 'quiz-select' && (
+          <QuizSelect difficulty={difficulty} setDifficulty={setDifficulty} onStart={startQuiz} />
+        )}
         {view === 'quiz' && quizCard && (
-          <QuizView card={quizCard} choices={quizChoices} result={quizResult} score={quizScore}
-            onAnswer={answerQuiz} onNext={startQuiz} onExit={() => setView('list')} />
+          <QuizView
+            card={quizCard} choices={quizChoices} result={quizResult}
+            score={quizScore} combo={combo} maxCombo={maxCombo}
+            quizLength={QUIZ_LENGTH}
+            onAnswer={answerQuiz} onNext={nextQuestion}
+            onExit={() => setView('list')}
+            onFinish={() => setView('quiz-result')}
+          />
+        )}
+        {view === 'quiz-result' && (
+          <QuizResult score={quizScore} maxCombo={maxCombo}
+            onRetry={() => startQuiz()} onHome={() => setView('list')} />
         )}
       </main>
 
@@ -188,39 +234,115 @@ function DetailView({ card, onBack }) {
   );
 }
 
-function QuizView({ card, choices, result, score, onAnswer, onNext, onExit }) {
+function QuizSelect({ difficulty, setDifficulty, onStart }) {
+  return (
+    <div className="max-w-md mx-auto">
+      <h2 className="text-2xl mb-8 text-center">クイズ設定</h2>
+      <div className="flex flex-col gap-4 mb-8">
+        {Object.entries(DIFFICULTY).map(([key, { label, desc }]) => (
+          <button key={key} onClick={() => setDifficulty(key)}
+            className={`p-4 border text-left ${difficulty === key ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300 hover:border-stone-500'}`}>
+            <div className="font-bold">{label}</div>
+            <div className="text-sm opacity-70">{desc}</div>
+          </button>
+        ))}
+      </div>
+      <button onClick={() => onStart(difficulty)}
+        className="w-full py-3 bg-red-700 text-stone-50 text-lg">
+        {QUIZ_LENGTH}問スタート
+      </button>
+    </div>
+  );
+}
+
+function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, onAnswer, onNext, onExit, onFinish }) {
+  const isFinished = score.total >= quizLength && result !== null;
+  const cols = choices.length <= 2 ? 'grid-cols-2' : choices.length <= 4 ? 'grid-cols-2' : 'grid-cols-3';
+
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6 text-sm">
-        <button onClick={onExit} className="text-stone-600 hover:text-stone-900">← 終わる</button>
-        <div className="text-stone-600">スコア: {score.correct} / {score.total}</div>
+      {/* ヘッダー */}
+      <div className="flex justify-between items-center mb-4 text-sm">
+        <button onClick={onExit} className="text-stone-600 hover:text-stone-900">← やめる</button>
+        <div className="flex gap-4 text-stone-600">
+          {combo >= 3 && (
+            <span className="text-amber-600 font-bold">{combo}連続🔥</span>
+          )}
+          <span>{score.total} / {quizLength}問</span>
+          <span className="text-emerald-700">{score.correct}正解</span>
+        </div>
       </div>
+
+      {/* プログレスバー */}
+      <div className="w-full bg-stone-200 h-1.5 mb-6">
+        <div className="bg-red-700 h-1.5 transition-all" style={{ width: `${(score.total / quizLength) * 100}%` }} />
+      </div>
+
+      {/* 問題 */}
       <div className="bg-white border border-stone-300 p-8 mb-6">
-        <p className="text-sm text-stone-600 mb-3">読み札の頭文字はどれ?</p>
-        <p className="text-xl">{card.verse}</p>
+        <p className="text-sm text-stone-500 mb-3">読み札の頭文字はどれ？</p>
+        <p className="text-xl leading-relaxed">{card.verse}</p>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+
+      {/* 選択肢 */}
+      <div className={`grid ${cols} gap-4`}>
         {choices.map(c => (
           <button key={c.kana} onClick={() => result === null && onAnswer(c.kana)} disabled={result !== null}
-            className={`text-5xl py-6 border ${
+            className={`text-4xl py-6 border transition-all ${
               result === null
-                ? 'bg-white border-stone-300 hover:border-red-700'
+                ? 'bg-white border-stone-300 hover:border-red-700 hover:shadow'
                 : c.kana === card.kana
                   ? 'bg-emerald-100 border-emerald-500 text-emerald-900'
-                  : 'bg-white border-stone-300 opacity-50'
+                  : 'bg-white border-stone-200 opacity-40'
             }`}>
             {c.kana}
           </button>
         ))}
       </div>
+
+      {/* 結果フィードバック */}
       {result !== null && (
         <div className="mt-6 text-center">
-          <p className={`text-xl mb-4 ${result ? 'text-emerald-700' : 'text-red-700'}`}>
-            {result ? '正解!' : `不正解。正解は「${card.kana}」`}
+          {combo >= 5 && <p className="text-amber-500 text-lg mb-1">🎉 {combo}連続コンボ！</p>}
+          {combo === 3 && <p className="text-amber-500 text-lg mb-1">🔥 3連続！</p>}
+          <p className={`text-xl mb-2 ${result ? 'text-emerald-700' : 'text-red-700'}`}>
+            {result ? '正解！' : `不正解　正解は「${card.kana}」`}
           </p>
-          <button onClick={onNext} className="px-6 py-2 bg-stone-900 text-stone-50">次の問題</button>
+          <p className="text-sm text-stone-500 mb-4">{card.verse}（{card.topic}）</p>
+          {isFinished
+            ? <button onClick={onFinish} className="px-8 py-2 bg-red-700 text-stone-50">結果を見る</button>
+            : <button onClick={onNext} className="px-8 py-2 bg-stone-900 text-stone-50">次の問題</button>
+          }
         </div>
       )}
+    </div>
+  );
+}
+
+function QuizResult({ score, maxCombo, onRetry, onHome }) {
+  const pct = Math.round((score.correct / score.total) * 100);
+  const grade =
+    pct === 100 ? '満点！🏆' :
+    pct >= 80  ? 'すばらしい！🌸' :
+    pct >= 60  ? 'よくできました🌿' :
+    pct >= 40  ? 'もう少し📖' : 'もっと練習しよう💪';
+
+  return (
+    <div className="max-w-md mx-auto text-center">
+      <h2 className="text-2xl mb-8">クイズ結果</h2>
+      <div className="bg-white border border-stone-300 p-10 mb-6">
+        <div className="text-6xl font-bold text-red-700 mb-2">{pct}<span className="text-3xl">%</span></div>
+        <div className="text-xl mb-6">{grade}</div>
+        <div className="flex justify-center gap-8 text-sm text-stone-600">
+          <div><div className="text-2xl font-bold text-stone-900">{score.correct}</div>正解</div>
+          <div><div className="text-2xl font-bold text-stone-900">{score.total - score.correct}</div>不正解</div>
+          <div><div className="text-2xl font-bold text-amber-600">{maxCombo}</div>最大コンボ</div>
+        </div>
+      </div>
+      <div className="flex gap-4">
+        <button onClick={onHome} className="flex-1 py-3 border border-stone-300 bg-white">一覧に戻る</button>
+        <button onClick={onRetry} className="flex-1 py-3 bg-red-700 text-stone-50">もう一度</button>
+      </div>
     </div>
   );
 }
