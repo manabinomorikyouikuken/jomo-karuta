@@ -154,11 +154,13 @@ export default function App() {
   const onBattleResult = (winner) => {
     if (winner === 'p1') setBattleScore(s => ({ ...s, p1: s.p1 + 1 }));
     if (winner === 'p2') setBattleScore(s => ({ ...s, p2: s.p2 + 1 }));
-    if (battleRound + 1 >= BATTLE_LENGTH) {
-      setTimeout(() => setView('battle-result'), 800);
-    } else {
-      setBattleRound(r => r + 1);
-    }
+    setBattleRound(r => {
+      if (r + 1 >= BATTLE_LENGTH) {
+        setTimeout(() => setView('battle-result'), 800);
+        return r;
+      }
+      return r + 1;
+    });
   };
 
   const startFlash = () => {
