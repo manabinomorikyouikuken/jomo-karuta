@@ -142,6 +142,8 @@ export default function App() {
   const [battleTime, setBattleTime] = useState(3);
   const [p1Name, setP1Name] = useState('プレイヤー1');
   const [p2Name, setP2Name] = useState('プレイヤー2');
+  const [vsPC, setVsPC] = useState(false);
+  const [pcLevel, setPcLevel] = useState('normal');
 
   const startBattle = () => {
     const cards = [...CARDS].sort(() => Math.random() - 0.5);
@@ -220,6 +222,8 @@ export default function App() {
             battleTime={battleTime} setBattleTime={setBattleTime}
             p1Name={p1Name} setP1Name={setP1Name}
             p2Name={p2Name} setP2Name={setP2Name}
+            vsPC={vsPC} setVsPC={setVsPC}
+            pcLevel={pcLevel} setPcLevel={setPcLevel}
             onStart={startBattle}
           />
         )}
@@ -230,8 +234,9 @@ export default function App() {
             round={battleRound}
             total={BATTLE_LENGTH}
             score={battleScore}
-            p1Name={p1Name} p2Name={p2Name}
+            p1Name={p1Name} p2Name={vsPC ? 'CPU' : p2Name}
             battleTime={battleTime}
+            vsPC={vsPC} pcLevel={pcLevel}
             onResult={onBattleResult}
             onExit={() => setView('list')}
           />
@@ -362,13 +367,31 @@ function FlashView({ card, index, total, onNext, onExit }) {
   );
 }
 
-function BattleSetup({ battleTime, setBattleTime, p1Name, setP1Name, p2Name, setP2Name, onStart }) {
+const PC_LEVELS = {
+  easy:   { label: 'よわい', range: [0.75, 1.0] },
+  normal: { label: 'ふつう', range: [0.45, 0.75] },
+  hard:   { label: 'つよい', range: [0.15, 0.45] },
+};
+
+function BattleSetup({ battleTime, setBattleTime, p1Name, setP1Name, p2Name, setP2Name, vsPC, setVsPC, pcLevel, setPcLevel, onStart }) {
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-2xl mb-8 text-center">対戦設定</h2>
 
       <div className="bg-white border border-stone-300 p-6 mb-4 space-y-5">
-        {/* 時間設定 */}
+        {/* 対戦相手選択 */}
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => setVsPC(false)}
+            className={`py-2 border text-sm font-bold ${!vsPC ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300'}`}>
+            2人対戦
+          </button>
+          <button onClick={() => setVsPC(true)}
+            className={`py-2 border text-sm font-bold ${vsPC ? 'bg-blue-700 text-stone-50 border-blue-700' : 'bg-white border-stone-300'}`}>
+            vs CPU
+          </button>
+        </div>
+
+        {/* 制限時間 */}
         <div>
           <label className="text-sm text-stone-600 block mb-2">制限時間：<span className="font-bold text-stone-900 text-lg">{battleTime}秒</span></label>
           <input type="range" min={1} max={10} value={battleTime}
@@ -377,46 +400,84 @@ function BattleSetup({ battleTime, setBattleTime, p1Name, setP1Name, p2Name, set
           <div className="flex justify-between text-xs text-stone-400 mt-1"><span>1秒</span><span>10秒</span></div>
         </div>
 
-        {/* プレイヤー名 */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* CPU強さ */}
+        {vsPC && (
           <div>
-            <label className="text-xs text-stone-500 block mb-1">左ボタン</label>
+            <label className="text-sm text-stone-600 block mb-2">CPUの強さ</label>
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(PC_LEVELS).map(([key, { label }]) => (
+                <button key={key} onClick={() => setPcLevel(key)}
+                  className={`py-2 border text-sm ${pcLevel === key ? 'bg-blue-700 text-stone-50 border-blue-700' : 'bg-white border-stone-300'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* プレイヤー名（2人対戦のみ） */}
+        {!vsPC && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs text-stone-500 block mb-1">左ボタン</label>
+              <input value={p1Name} onChange={e => setP1Name(e.target.value)}
+                className="w-full border border-stone-300 px-3 py-2 text-sm" maxLength={8} />
+            </div>
+            <div>
+              <label className="text-xs text-stone-500 block mb-1">右ボタン</label>
+              <input value={p2Name} onChange={e => setP2Name(e.target.value)}
+                className="w-full border border-stone-300 px-3 py-2 text-sm" maxLength={8} />
+            </div>
+          </div>
+        )}
+        {vsPC && (
+          <div>
+            <label className="text-xs text-stone-500 block mb-1">あなたの名前</label>
             <input value={p1Name} onChange={e => setP1Name(e.target.value)}
               className="w-full border border-stone-300 px-3 py-2 text-sm" maxLength={8} />
           </div>
-          <div>
-            <label className="text-xs text-stone-500 block mb-1">右ボタン</label>
-            <input value={p2Name} onChange={e => setP2Name(e.target.value)}
-              className="w-full border border-stone-300 px-3 py-2 text-sm" maxLength={8} />
-          </div>
-        </div>
+        )}
       </div>
 
       <p className="text-xs text-stone-500 text-center mb-6">
-        頭文字を見てカウントダウン開始。先に押した方が得点。<br/>時間切れは両者0点。{BATTLE_LENGTH}問勝負。
+        頭文字を見てカウントダウン開始。先に押した方が得点。<br/>時間切れは{vsPC ? 'CPU' : '両者'}0点。{BATTLE_LENGTH}問勝負。
       </p>
       <button onClick={onStart} className="w-full py-3 bg-blue-700 text-stone-50 text-lg">対戦スタート</button>
     </div>
   );
 }
 
-function BattleRound({ card, round, total, score, p1Name, p2Name, battleTime, onResult, onExit }) {
+function BattleRound({ card, round, total, score, p1Name, p2Name, battleTime, vsPC, pcLevel, onResult, onExit }) {
   const [countdown, setCountdown] = useState(battleTime);
   const [winner, setWinner] = useState(null); // 'p1' | 'p2' | 'timeout'
   const intervalRef = useRef(null);
+  const pcTimerRef = useRef(null);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setCountdown(c => {
         if (c <= 1) {
           clearInterval(intervalRef.current);
-          setWinner('timeout');
+          setWinner(prev => prev ?? 'timeout');
           return 0;
         }
         return c - 1;
       });
     }, 1000);
-    return () => clearInterval(intervalRef.current);
+
+    // CPUの自動押し
+    if (vsPC) {
+      const [lo, hi] = PC_LEVELS[pcLevel].range;
+      const pcDelay = battleTime * (lo + Math.random() * (hi - lo)) * 1000;
+      pcTimerRef.current = setTimeout(() => {
+        setWinner(prev => prev === null ? 'p2' : prev);
+      }, pcDelay);
+    }
+
+    return () => {
+      clearInterval(intervalRef.current);
+      clearTimeout(pcTimerRef.current);
+    };
   }, []);
 
   const press = (player) => {
@@ -481,16 +542,27 @@ function BattleRound({ card, round, total, score, p1Name, p2Name, battleTime, on
           }`}>
           {winner === 'p1' ? '✓ 得点！' : p1Name}
         </button>
-        <button
-          onClick={() => press('p2')}
-          disabled={winner !== null}
-          className={`py-10 text-xl font-bold border-2 transition-all ${
-            winner === 'p2' ? 'bg-blue-600 text-white border-blue-600' :
+
+        {vsPC ? (
+          <div className={`py-10 text-xl font-bold border-2 text-center flex items-center justify-center transition-all ${
+            winner === 'p2' ? 'bg-red-600 text-white border-red-600' :
             winner ? 'bg-stone-100 text-stone-400 border-stone-200' :
-            'bg-white border-blue-400 hover:bg-blue-50 active:bg-blue-100'
+            'bg-stone-50 border-stone-300 text-stone-400'
           }`}>
-          {winner === 'p2' ? '✓ 得点！' : p2Name}
-        </button>
+            {winner === 'p2' ? '🤖 CPU 得点！' : '🤖 CPU'}
+          </div>
+        ) : (
+          <button
+            onClick={() => press('p2')}
+            disabled={winner !== null}
+            className={`py-10 text-xl font-bold border-2 transition-all ${
+              winner === 'p2' ? 'bg-blue-600 text-white border-blue-600' :
+              winner ? 'bg-stone-100 text-stone-400 border-stone-200' :
+              'bg-white border-blue-400 hover:bg-blue-50 active:bg-blue-100'
+            }`}>
+            {winner === 'p2' ? '✓ 得点！' : p2Name}
+          </button>
+        )}
       </div>
     </div>
   );
