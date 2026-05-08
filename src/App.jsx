@@ -479,7 +479,7 @@ function BattleRound({ card, round, total, score, p1Name, battleTime, pcLevel, o
           <div className="text-2xl font-bold">{score.p1}</div>
         </div>
         <div className={`py-2 border ${winner === 'p2' ? 'bg-blue-100 border-blue-500' : 'border-stone-300'}`}>
-          <div className="text-xs text-stone-500">{p2Name}</div>
+          <div className="text-xs text-stone-500">🤖 CPU</div>
           <div className="text-2xl font-bold">{score.p2}</div>
         </div>
       </div>
