@@ -114,6 +114,10 @@ export default function App() {
   };
 
   const nextQuestion = () => {
+    setQuizScore(s => {
+      if (s.total >= QUIZ_LENGTH) { setView('quiz-result'); return s; }
+      return s;
+    });
     const { card, choices } = buildQuestion();
     setQuizCard(card);
     setQuizChoices(choices);
@@ -394,7 +398,7 @@ function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, o
 }
 
 function QuizResult({ score, maxCombo, onRetry, onHome }) {
-  const pct = Math.round((score.correct / score.total) * 100);
+  const pct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
   const grade =
     pct === 100 ? '満点！🏆' :
     pct >= 80  ? 'すばらしい！🌸' :
