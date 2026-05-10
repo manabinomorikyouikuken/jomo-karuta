@@ -114,10 +114,6 @@ export default function App() {
   };
 
   const nextQuestion = () => {
-    setQuizScore(s => {
-      if (s.total >= QUIZ_LENGTH) { setView('quiz-result'); return s; }
-      return s;
-    });
     const { card, choices } = buildQuestion();
     setQuizCard(card);
     setQuizChoices(choices);
