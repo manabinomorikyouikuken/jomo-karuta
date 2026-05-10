@@ -331,7 +331,7 @@ function QuizSelect({ difficulty, setDifficulty, onStart }) {
 
 function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, onAnswer, onNext, onExit, onFinish }) {
   const isFinished = score.total >= quizLength && result !== null;
-  const cols = choices.length <= 2 ? 'grid-cols-2' : choices.length <= 4 ? 'grid-cols-2' : 'grid-cols-3';
+  const cols = choices.length <= 4 ? 'grid-cols-2' : 'grid-cols-3';
 
   return (
     <div className="max-w-2xl mx-auto">
