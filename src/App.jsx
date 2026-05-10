@@ -26,7 +26,7 @@ const CARDS = [
   { kana: 'せ', verse: '仙境尾瀬沼 花の原', topic: '尾瀬', desc: '群馬・福島・新潟・栃木にまたがる高層湿原。ミズバショウで知られる日本最大の山岳湿原。', category: 'shizen' },
   { kana: 'そ', verse: 'そろいの支度で八木節音頭', topic: '八木節', desc: '桐生市・足利市を中心に伝わる民謡。夏祭りには揃いの浴衣で踊られる群馬を代表する民俗芸能。', category: 'bunka' },
   { kana: 'た', verse: '滝は吹割 片品渓谷', topic: '吹割の滝', desc: '沼田市の片品渓谷にある「東洋のナイアガラ」と呼ばれる瀑布。国の天然記念物。', category: 'shizen' },
-  { kana: 'ち', verse: '力あわせる 二百万', topic: '群馬県民', desc: '群馬県民の団結を讃える札。人口の増加に伴い改訂が重ねられてきた。', category: 'bunka' },
+  { kana: 'ち', verse: '力あわせる 百九十万', topic: '群馬県民', desc: '群馬県民の団結を讃える札。2014年改訂版。', category: 'bunka' },
   { kana: 'つ', verse: 'つる舞う形の群馬県', topic: '群馬県の形', desc: '群馬県の輪郭は鶴が舞う姿に似ている。県のシンボル。', category: 'shizen' },
   { kana: 'て', verse: '天下の義人 茂左衛門', topic: '茂左衛門', desc: '沼田藩領の農民一揆を率いた磔茂左衛門。農民のために命を捨てた義人として語り継がれる。', category: 'jinbutsu' },
   { kana: 'と', verse: '利根は坂東一の川', topic: '利根川', desc: '関東平野を貫く大河。「坂東太郎」の異名を持つ群馬発祥の川。', category: 'shizen' },
