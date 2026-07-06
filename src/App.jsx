@@ -301,7 +301,13 @@ function KarutaImage({ card, variant = 'large' }) {
   if (card.imageSrc) {
     return (
       <div className={`flex overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
-        <img src={card.imageSrc} alt={card.imageAlt} className="h-full w-full object-contain" />
+        <img
+          src={card.imageSrc}
+          alt={card.imageAlt}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain"
+        />
       </div>
     );
   }
@@ -318,7 +324,13 @@ function YomifudaImage({ card }) {
   if (card.readingImageSrc) {
     return (
       <div className="flex aspect-[4/5] overflow-hidden border border-stone-300 bg-white">
-        <img src={card.readingImageSrc} alt={card.readingImageAlt} className="h-full w-full object-contain" />
+        <img
+          src={card.readingImageSrc}
+          alt={card.readingImageAlt}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain"
+        />
       </div>
     );
   }
