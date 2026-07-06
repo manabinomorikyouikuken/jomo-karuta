@@ -1,75 +1,34 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
+import { CARDS } from './data/cards.js';
+import { CATEGORIES } from './data/categories.js';
+import { LICENSE, getCreditLine, licenseSummaryFields, releaseGates } from './data/license.js';
+import { PUBLICATION_CHECKS, REPORT_DRAFT_FIELDS } from './data/releaseChecklist.js';
 
 // =====================================================================
-// 上毛かるた アプリ
-// ⚠️ 札の文言・解説は群馬県の著作物です。本ファイルのCARDSデータは
-//    構造サンプルです。公開・配布前に必ず群馬県地域創生部文化振興課
-//    への利用許諾申請を完了し、公式データに差し替えてください。
-//    申請先: bunshinka@pref.gunma.lg.jp
+// 上毛かるた 学習アプリ
+// 公開・販売前に必ず行うこと:
+// 1. 公式絵札・読み札の全体表示と可読性を確認する
+// 2. 許諾番号、利用期間、非公式アプリ表記を確認する
+// 3. src/data/license.js の公開可否を人間確認後に確定する
 // =====================================================================
-
-// ⚠️ 読み札・解説は記憶ベースのサンプルです。公開前に群馬県公式データへ差し替えてください。
-const CARDS = [
-  { kana: 'あ', verse: '浅間のいたずら鬼の押出し', topic: '浅間山', desc: '吾妻郡嬬恋村にある溶岩台地「鬼押出し」。浅間山の噴火(1783年)でできた奇岩の景勝地。', category: 'shizen' },
-  { kana: 'い', verse: '伊香保温泉 日本の名湯', topic: '伊香保温泉', desc: '渋川市の山あいにある温泉地。石段街と黄金の湯で知られる古湯。', category: 'meisho' },
-  { kana: 'う', verse: '碓氷峠の関所跡', topic: '碓氷峠', desc: '安中市坂本にある江戸時代の関所跡。中山道の難所として知られる。', category: 'rekishi' },
-  { kana: 'え', verse: '縁起だるまの少林山', topic: '少林山達磨寺', desc: '高崎市鼻高町にある曹洞宗の寺院。全国シェア約8割を誇る高崎だるまの発祥の地。', category: 'meisho' },
-  { kana: 'お', verse: '太田金山 子育て呑龍', topic: '呑龍上人', desc: '太田市にある大光院の開山・呑龍上人。捨て子を養育した「子育て呑龍」として信仰を集める。', category: 'jinbutsu' },
-  { kana: 'か', verse: '関東と信越つなぐ高崎市', topic: '高崎市', desc: '群馬県最大の都市。北陸・上越・長野新幹線の分岐点として交通の要衝。', category: 'meisho' },
-  { kana: 'き', verse: '桐生は日本の機どころ', topic: '桐生織物', desc: '桐生市は絹織物の産地として江戸時代から栄えた。「西の西陣、東の桐生」と称される。', category: 'sangyo' },
-  { kana: 'く', verse: '草津よいとこ 薬の温泉', topic: '草津温泉', desc: '吾妻郡草津町。日本三名泉のひとつ。湯畑が町のシンボル。', category: 'meisho' },
-  { kana: 'け', verse: '県都前橋 生糸の市', topic: '前橋市', desc: '群馬県の県庁所在地。明治期から生糸の集散地として栄えた。', category: 'meisho' },
-  { kana: 'こ', verse: '心の燈台内村鑑三', topic: '内村鑑三', desc: '高崎市出身のキリスト教思想家・文学者。無教会主義を唱え、日本の精神的文化に大きな影響を与えた。', category: 'jinbutsu' },
-  { kana: 'さ', verse: '三波石と共に名高い冬桜', topic: '桜山公園', desc: '藤岡市の桜山公園。秋から冬にかけて咲く冬桜と、庭石として名高い三波石が見どころ。', category: 'shizen' },
-  { kana: 'し', verse: 'しのぶ毛の国 二子塚', topic: '岩宿遺跡', desc: 'みどり市の岩宿遺跡は関東ローム層から旧石器時代の石器が出土した日本考古学の転換点。', category: 'rekishi' },
-  { kana: 'す', verse: '裾野は長し赤城山', topic: '赤城山', desc: '群馬県中央部にそびえる標高1828mの成層火山。上毛三山のひとつ。', category: 'shizen' },
-  { kana: 'せ', verse: '仙境尾瀬沼 花の原', topic: '尾瀬', desc: '群馬・福島・新潟・栃木にまたがる高層湿原。ミズバショウで知られる日本最大の山岳湿原。', category: 'shizen' },
-  { kana: 'そ', verse: 'そろいの支度で八木節音頭', topic: '八木節', desc: '桐生市・足利市を中心に伝わる民謡。夏祭りには揃いの浴衣で踊られる群馬を代表する民俗芸能。', category: 'bunka' },
-  { kana: 'た', verse: '滝は吹割 片品渓谷', topic: '吹割の滝', desc: '沼田市の片品渓谷にある「東洋のナイアガラ」と呼ばれる瀑布。国の天然記念物。', category: 'shizen' },
-  { kana: 'ち', verse: '力あわせる 百九十万', topic: '群馬県民', desc: '群馬県民の団結を讃える札。2014年改訂版。', category: 'bunka' },
-  { kana: 'つ', verse: 'つる舞う形の群馬県', topic: '群馬県の形', desc: '群馬県の輪郭は鶴が舞う姿に似ている。県のシンボル。', category: 'shizen' },
-  { kana: 'て', verse: '天下の義人 茂左衛門', topic: '茂左衛門', desc: '沼田藩領の農民一揆を率いた磔茂左衛門。農民のために命を捨てた義人として語り継がれる。', category: 'jinbutsu' },
-  { kana: 'と', verse: '利根は坂東一の川', topic: '利根川', desc: '関東平野を貫く大河。「坂東太郎」の異名を持つ群馬発祥の川。', category: 'shizen' },
-  { kana: 'な', verse: '中仙道しのぶ 安中杉並木', topic: '安中杉並木', desc: '安中市の旧中山道沿いに残る杉並木。江戸時代の街道の面影をとどめる。', category: 'rekishi' },
-  { kana: 'に', verse: '日本で最初の富岡製糸', topic: '富岡製糸場', desc: '明治5年(1872)創設の官営模範工場。2014年に世界文化遺産に登録。', category: 'rekishi' },
-  { kana: 'ぬ', verse: '沼田城下の塩原太助', topic: '塩原太助', desc: '沼田市出身の江戸の豪商。苦労人から成功した人物として落語の題材にもなっている。', category: 'jinbutsu' },
-  { kana: 'ね', verse: 'ねぎとこんにゃく 下仁田名産', topic: '下仁田町', desc: '甘楽郡下仁田町は下仁田ねぎとこんにゃくの一大産地。', category: 'sangyo' },
-  { kana: 'の', verse: '登る榛名の キャンプ村', topic: '榛名山', desc: '高崎市にある成層火山。榛名湖畔はキャンプや観光の名所。上毛三山のひとつ。', category: 'shizen' },
-  { kana: 'は', verse: '花山公園 つつじの名所', topic: 'つつじが岡公園', desc: '館林市のつつじが岡公園は樹齢800年を超えるつつじを誇る日本最大級のつつじの名所。', category: 'meisho' },
-  { kana: 'ひ', verse: '白衣観音 慈悲の御手', topic: '白衣大観音', desc: '高崎市の慈眼院にある高さ41.8mの白衣観音像。1936年建立。高崎のシンボル。', category: 'meisho' },
-  { kana: 'ふ', verse: '分福茶釜の茂林寺', topic: '茂林寺', desc: '館林市にある曹洞宗の寺院。「分福茶釜」の昔話の舞台として知られる。', category: 'meisho' },
-  { kana: 'へ', verse: '平和の使徒 新島襄', topic: '新島襄', desc: '安中市出身のキリスト教教育者。同志社英学校（現・同志社大学）の創設者。', category: 'jinbutsu' },
-  { kana: 'ほ', verse: '誇る文豪 田山花袋', topic: '田山花袋', desc: '館林市出身の自然主義文学の代表的作家。代表作「蒲団」は日本近代文学の金字塔。', category: 'jinbutsu' },
-  { kana: 'ま', verse: '繭と生糸は日本一', topic: '養蚕・生糸業', desc: '群馬県は明治以来、養蚕・製糸業で日本一の生産量を誇った。富岡製糸場の世界遺産登録でも注目。', category: 'sangyo' },
-  { kana: 'み', verse: '水上谷川 スキーと登山', topic: '谷川岳', desc: 'みなかみ町の谷川岳（標高1977m）は岩壁登山とスキーで知られる山岳リゾート。', category: 'shizen' },
-  { kana: 'む', verse: '昔を語る 多胡の古碑', topic: '多胡碑', desc: '高崎市吉井町にある奈良時代の石碑。日本三古碑のひとつ。国の特別史跡。', category: 'rekishi' },
-  { kana: 'め', verse: '銘仙織出す 伊勢崎市', topic: '伊勢崎銘仙', desc: '伊勢崎市は大正・昭和初期に独自の絣技法「伊勢崎銘仙」で全国にその名を馳せた織物産地。', category: 'sangyo' },
-  { kana: 'も', verse: '紅葉に映える妙義山', topic: '妙義山', desc: '富岡市・安中市にまたがる奇峰の山塊。上毛三山のひとつ。秋の紅葉が絶景。', category: 'shizen' },
-  { kana: 'や', verse: '耶馬溪しのぐ 吾妻峡', topic: '吾妻峡', desc: '吾妻郡東吾妻町にある渓谷。大正時代に「日本の三大渓谷美」のひとつと称された景勝地。', category: 'shizen' },
-  { kana: 'ゆ', verse: 'ゆかりは古し貫前神社', topic: '貫前神社', desc: '富岡市にある延喜式内社。一之宮として崇敬を集める群馬県最古の神社のひとつ。', category: 'rekishi' },
-  { kana: 'よ', verse: '世のちり洗う 四万温泉', topic: '四万温泉', desc: '吾妻郡中之条町の秘湯。「四万の病を癒す」が地名の由来とされる歴史ある温泉地。', category: 'meisho' },
-  { kana: 'ら', verse: '雷と空風 義理人情', topic: '上州気質', desc: '群馬を代表する気候・風土と県民気質を詠んだ札。雷と空っ風と義理人情が上州人の象徴。', category: 'bunka' },
-  { kana: 'り', verse: '理想の電化に 電源群馬', topic: '電源開発', desc: '群馬県は矢木沢ダムなど多くのダムと水力発電所を持ち、関東圏の電力を支えてきた。', category: 'sangyo' },
-  { kana: 'る', verse: 'ループで名高い 清水トンネル', topic: '清水トンネル', desc: '上越線の土合駅付近を貫くトンネル。三国山脈の難工事として知られ、ループ線で高低差を克服した。', category: 'rekishi' },
-  { kana: 'れ', verse: '歴史に名高い 新田義貞', topic: '新田義貞', desc: '太田市出身の南北朝時代の武将。鎌倉幕府を滅ぼした英雄として歴史に名を刻む。', category: 'jinbutsu' },
-  { kana: 'ろ', verse: '老農船津伝次平', topic: '船津伝次平', desc: '前橋市出身の明治時代の農業改良家。近代農法を広め「老農」として尊敬された人物。', category: 'jinbutsu' },
-  { kana: 'わ', verse: '和算の大家 関孝和', topic: '関孝和', desc: '藤岡市出身の江戸時代の数学者。行列式・円周率計算など日本独自の和算を大成した。', category: 'jinbutsu' },
-];
-
-const CATEGORIES = {
-  meisho:   { label: '名所', color: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
-  jinbutsu: { label: '人物', color: 'bg-blue-100 text-blue-900 border-blue-300' },
-  rekishi:  { label: '歴史', color: 'bg-amber-100 text-amber-900 border-amber-300' },
-  shizen:   { label: '自然', color: 'bg-teal-100 text-teal-900 border-teal-300' },
-  sangyo:   { label: '産業', color: 'bg-orange-100 text-orange-900 border-orange-300' },
-  bunka:    { label: '文化', color: 'bg-rose-100 text-rose-900 border-rose-300' },
-};
 
 const DIFFICULTY = {
-  easy:   { label: 'かんたん', choices: 2, desc: '2択' },
-  normal: { label: 'ふつう',   choices: 4, desc: '4択' },
-  hard:   { label: 'むずかしい', choices: 6, desc: '6択' },
+  easy: { label: 'かんたん', choices: 2, desc: '2択' },
+  normal: { label: 'ふつう', choices: 4, desc: '4択' },
+  hard: { label: 'むずかしい', choices: 6, desc: '6択' },
 };
+
+const QUIZ_MODES = {
+  verseToKana: {
+    label: '読みから頭文字',
+    desc: '読み札を見て、合う頭文字を選ぶ',
+  },
+  imageToVerse: {
+    label: '絵札から読み札',
+    desc: '絵札を見て、合う読み札を選ぶ',
+  },
+};
+
 const QUIZ_LENGTH = 10;
 
 export default function App() {
@@ -77,25 +36,31 @@ export default function App() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [filter, setFilter] = useState('all');
   const [difficulty, setDifficulty] = useState('normal');
+  const [quizMode, setQuizMode] = useState('verseToKana');
 
-  // quiz state
   const [quizCard, setQuizCard] = useState(null);
   const [quizChoices, setQuizChoices] = useState([]);
   const [quizResult, setQuizResult] = useState(null);
   const [quizScore, setQuizScore] = useState({ correct: 0, total: 0 });
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
+  const [mistakes, setMistakes] = useState([]);
+
+  const [flashIndex, setFlashIndex] = useState(0);
+  const [flashOrder, setFlashOrder] = useState([]);
 
   const filteredCards = useMemo(
-    () => filter === 'all' ? CARDS : CARDS.filter(c => c.category === filter),
-    [filter]
+    () => (filter === 'all' ? CARDS : CARDS.filter((card) => card.category === filter)),
+    [filter],
   );
 
   const buildQuestion = (diff = difficulty) => {
     const card = CARDS[Math.floor(Math.random() * CARDS.length)];
     const n = DIFFICULTY[diff].choices;
-    const wrong = CARDS.filter(c => c.kana !== card.kana)
-      .sort(() => Math.random() - 0.5).slice(0, n - 1);
+    const wrong = CARDS.filter((candidate) => candidate.kana !== card.kana)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, n - 1);
+
     return {
       card,
       choices: [card, ...wrong].sort(() => Math.random() - 0.5),
@@ -110,6 +75,7 @@ export default function App() {
     setQuizScore({ correct: 0, total: 0 });
     setCombo(0);
     setMaxCombo(0);
+    setMistakes([]);
     setView('quiz');
   };
 
@@ -124,14 +90,25 @@ export default function App() {
     const correct = kana === quizCard.kana;
     const newCombo = correct ? combo + 1 : 0;
     setCombo(newCombo);
-    setMaxCombo(m => Math.max(m, newCombo));
+    setMaxCombo((current) => Math.max(current, newCombo));
     setQuizResult(correct);
-    setQuizScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
+    if (!correct) {
+      const chosen = CARDS.find((card) => card.kana === kana);
+      setMistakes((current) => [
+        ...current,
+        {
+          card: quizCard,
+          chosenKana: chosen?.kana || kana,
+          chosenVerse: chosen?.verse || '',
+          mode: quizMode,
+        },
+      ]);
+    }
+    setQuizScore((score) => ({
+      correct: score.correct + (correct ? 1 : 0),
+      total: score.total + 1,
+    }));
   };
-
-  // flash state
-  const [flashIndex, setFlashIndex] = useState(0);
-  const [flashOrder, setFlashOrder] = useState([]);
 
   const startFlash = () => {
     const order = [...CARDS].sort(() => Math.random() - 0.5);
@@ -144,31 +121,44 @@ export default function App() {
     if (flashIndex + 1 >= flashOrder.length) {
       startFlash();
     } else {
-      setFlashIndex(i => i + 1);
+      setFlashIndex((index) => index + 1);
     }
   };
 
-  const openCard = (card) => { setSelectedCard(card); setView('detail'); };
+  const openCard = (card) => {
+    setSelectedCard(card);
+    setView('detail');
+  };
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900" style={{ fontFamily: '"Noto Serif JP", "Hiragino Mincho ProN", serif' }}>
-      <header className="border-b border-stone-300 bg-white/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl tracking-wider">
-            <span className="text-red-700">上毛</span>かるた
-          </h1>
-          <nav className="flex gap-2 text-sm flex-wrap">
-            <button onClick={() => setView('list')}
-              className={`px-3 py-1.5 border ${view === 'list' ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300'}`}>一覧</button>
-            <button onClick={() => startFlash()}
-              className={`px-3 py-1.5 border ${view === 'flash' ? 'bg-amber-700 text-stone-50 border-amber-700' : 'bg-white border-stone-300'}`}>フラッシュ</button>
-<button onClick={() => setView('quiz-select')}
-              className={`px-3 py-1.5 border ${view === 'quiz' ? 'bg-red-700 text-stone-50 border-red-700' : 'bg-white border-stone-300'}`}>クイズ</button>
+    <div
+      className="min-h-screen bg-stone-50 text-stone-900"
+      style={{ fontFamily: '"Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Hiragino Mincho Pro", serif' }}
+    >
+      <header className="sticky top-0 z-10 border-b border-stone-300 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl tracking-wider">
+              <span className="text-red-700">上毛</span>かるた
+            </h1>
+            <p className="mt-1 text-xs text-stone-500">
+              {LICENSE.publicReleaseAllowed
+                ? '学習Webアプリ・許諾取得済み／公式データ反映済み・公開中'
+                : '学習Webアプリ・許諾取得済み／公式データ反映済み・公開前確認中'}
+            </p>
+          </div>
+          <nav className="flex flex-wrap gap-2 text-sm">
+            <NavButton active={view === 'list'} onClick={() => setView('list')}>一覧</NavButton>
+            <NavButton active={view === 'flash'} onClick={() => startFlash()}>フラッシュ</NavButton>
+            <NavButton active={view === 'quiz' || view === 'quiz-select'} onClick={() => setView('quiz-select')}>クイズ</NavButton>
+            <NavButton active={view === 'readiness'} onClick={() => setView('readiness')}>公開前確認</NavButton>
           </nav>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        <StatusBanner />
+
         {view === 'list' && (
           <ListView cards={filteredCards} filter={filter} setFilter={setFilter} onSelect={openCard} />
         )}
@@ -185,31 +175,80 @@ export default function App() {
             onExit={() => setView('list')}
           />
         )}
-{view === 'quiz-select' && (
-          <QuizSelect difficulty={difficulty} setDifficulty={setDifficulty} onStart={startQuiz} />
+        {view === 'quiz-select' && (
+          <QuizSelect
+            difficulty={difficulty}
+            setDifficulty={setDifficulty}
+            quizMode={quizMode}
+            setQuizMode={setQuizMode}
+            onStart={startQuiz}
+          />
         )}
         {view === 'quiz' && quizCard && (
           <QuizView
-            card={quizCard} choices={quizChoices} result={quizResult}
-            score={quizScore} combo={combo} maxCombo={maxCombo}
+            card={quizCard}
+            choices={quizChoices}
+            result={quizResult}
+            score={quizScore}
+            combo={combo}
+            maxCombo={maxCombo}
             quizLength={QUIZ_LENGTH}
-            onAnswer={answerQuiz} onNext={nextQuestion}
+            quizMode={quizMode}
+            onAnswer={answerQuiz}
+            onNext={nextQuestion}
             onExit={() => setView('list')}
             onFinish={() => setView('quiz-result')}
           />
         )}
         {view === 'quiz-result' && (
-          <QuizResult score={quizScore} maxCombo={maxCombo}
-            onRetry={() => startQuiz()} onHome={() => setView('list')} />
+          <QuizResult
+            score={quizScore}
+            maxCombo={maxCombo}
+            mistakes={mistakes}
+            onRetry={() => startQuiz()}
+            onHome={() => setView('list')}
+            onReview={(card) => openCard(card)}
+          />
         )}
+        {view === 'readiness' && <ReadinessView />}
       </main>
 
-      <footer className="border-t border-stone-300 bg-stone-100 mt-16">
-        <div className="max-w-5xl mx-auto px-4 py-6 text-xs text-stone-600 text-center space-y-1">
-          <p>「上毛かるた」© 群馬県　／　利用許諾番号 第◯◯-◯◯◯◯号</p>
-          <p>本アプリは群馬県の利用許諾を得て制作されたもので、群馬県の公式アプリではありません。</p>
-        </div>
+      <footer className="mt-16 border-t border-stone-300 bg-stone-100">
+        <LicenseCredit />
       </footer>
+    </div>
+  );
+}
+
+function NavButton({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`border px-3 py-1.5 ${
+        active ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function StatusBanner() {
+  if (LICENSE.publicReleaseAllowed) return null;
+
+  return (
+    <div className="mb-6 border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-950">
+      <strong>公開前確認:</strong> {LICENSE.dataNotice}
+    </div>
+  );
+}
+
+function LicenseCredit() {
+  return (
+    <div className="mx-auto max-w-5xl space-y-1 px-4 py-6 text-center text-xs text-stone-600">
+      <p>{getCreditLine()}</p>
+      <p>利用期間: {LICENSE.usagePeriod} ／ 許諾範囲: {LICENSE.permittedMaterials}</p>
+      <p>{LICENSE.officialAppNotice}</p>
     </div>
   );
 }
@@ -217,19 +256,23 @@ export default function App() {
 function ListView({ cards, filter, setFilter, onSelect }) {
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="mb-6 flex flex-wrap gap-2">
         <FilterButton label="すべて" active={filter === 'all'} onClick={() => setFilter('all')} />
         {Object.entries(CATEGORIES).map(([key, { label }]) => (
           <FilterButton key={key} label={label} active={filter === key} onClick={() => setFilter(key)} />
         ))}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {cards.map(card => (
-          <button key={card.kana} onClick={() => onSelect(card)}
-            className="group bg-white border border-stone-300 p-4 text-left hover:border-red-700 hover:shadow-md transition-all">
-            <div className="text-5xl text-red-700 mb-2">{card.kana}</div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+        {cards.map((card) => (
+          <button
+            key={card.kana}
+            onClick={() => onSelect(card)}
+            className="group bg-white p-4 text-left transition-all hover:shadow-md"
+          >
+            <KarutaImage card={card} variant="thumb" />
+            <div className="mb-2 mt-3 text-5xl text-red-700">{card.kana}</div>
             <div className="text-sm leading-relaxed">{card.verse}</div>
-            <div className={`mt-3 inline-block text-[10px] px-2 py-0.5 border ${CATEGORIES[card.category]?.color || ''}`}>
+            <div className={`mt-3 inline-block border px-2 py-0.5 text-[10px] ${CATEGORIES[card.category]?.color || ''}`}>
               {CATEGORIES[card.category]?.label}
             </div>
           </button>
@@ -241,27 +284,81 @@ function ListView({ cards, filter, setFilter, onSelect }) {
 
 function FilterButton({ label, active, onClick }) {
   return (
-    <button onClick={onClick}
-      className={`px-3 py-1.5 text-sm border ${active ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300 hover:border-stone-500'}`}>
+    <button
+      onClick={onClick}
+      className={`border px-3 py-1.5 text-sm ${
+        active ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
+      }`}
+    >
       {label}
     </button>
   );
 }
 
+function KarutaImage({ card, variant = 'large' }) {
+  const sizeClass = variant === 'thumb' ? 'aspect-[4/5] text-xs' : 'aspect-[4/5] text-sm';
+
+  if (card.imageSrc) {
+    return (
+      <div className={`flex overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
+        <img src={card.imageSrc} alt={card.imageAlt} className="h-full w-full object-contain" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-stone-500 ${sizeClass}`}>
+      <span className="font-bold text-stone-700">絵札枠</span>
+      <span>公式データ待ち</span>
+    </div>
+  );
+}
+
+function YomifudaImage({ card }) {
+  if (card.readingImageSrc) {
+    return (
+      <div className="flex aspect-[4/5] overflow-hidden border border-stone-300 bg-white">
+        <img src={card.readingImageSrc} alt={card.readingImageAlt} className="h-full w-full object-contain" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex aspect-[4/5] flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-sm text-stone-500">
+      <span className="font-bold text-stone-700">読み札枠</span>
+      <span>公式データ待ち</span>
+    </div>
+  );
+}
+
 function DetailView({ card, onBack }) {
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white border border-stone-300 p-8 sm:p-12">
-        <div className="text-8xl text-red-700 mb-6 text-center">{card.kana}</div>
-        <div className="text-2xl text-center mb-4">{card.verse}</div>
-        <div className={`inline-block text-xs px-2 py-0.5 border mb-6 ${CATEGORIES[card.category]?.color || ''}`}>
+    <div className="mx-auto max-w-2xl">
+      <div className="bg-white p-6 sm:p-10">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <figure>
+            <figcaption className="mb-2 text-sm font-bold text-stone-600">絵札</figcaption>
+            <KarutaImage card={card} />
+          </figure>
+          <figure>
+            <figcaption className="mb-2 text-sm font-bold text-stone-600">読み札</figcaption>
+            <YomifudaImage card={card} />
+          </figure>
+        </div>
+        <div className="mb-4 mt-6 text-center text-8xl text-red-700">{card.kana}</div>
+        <div className="mb-4 text-center text-2xl">{card.verse}</div>
+        <div className={`mb-6 inline-block border px-2 py-0.5 text-xs ${CATEGORIES[card.category]?.color || ''}`}>
           {CATEGORIES[card.category]?.label}
         </div>
-        <h2 className="text-xl font-bold mb-2">{card.topic}</h2>
-        <p className="text-stone-700 leading-relaxed">{card.desc}</p>
+
+        <h2 className="mb-2 text-xl font-bold">{card.topic}</h2>
+        <section className="border border-amber-200 bg-amber-50 p-4">
+          <h3 className="mb-2 text-sm font-bold text-amber-900">まなびメモ（独自補足）</h3>
+          <p className="leading-relaxed text-stone-700">{card.sampleCommentary}</p>
+          <p className="mt-2 text-xs text-amber-900">絵札・読み札とは別の独自学習メモです。群馬県が作成した解説文ではありません。</p>
+        </section>
       </div>
-      <button onClick={onBack}
-        className="w-full mt-4 py-4 border border-stone-300 bg-white text-stone-700 hover:bg-stone-50 text-sm">
+      <button onClick={onBack} className="mt-4 w-full border border-stone-300 bg-white py-4 text-sm text-stone-700 hover:bg-stone-50">
         ← 一覧に戻る
       </button>
     </div>
@@ -272,151 +369,278 @@ function FlashView({ card, index, total, onNext, onExit }) {
   const [revealed, setRevealed] = useState(false);
 
   return (
-    <div className="max-w-xl mx-auto">
-      <div className="flex justify-between items-center mb-4 text-sm text-stone-500">
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-4 flex items-center justify-between text-sm text-stone-500">
         <button onClick={onExit}>← やめる</button>
         <span>{index + 1} / {total}</span>
       </div>
 
-      {/* カード本体 */}
       <div
         onClick={!revealed ? () => setRevealed(true) : undefined}
-        className={`bg-white border-2 rounded-sm flex flex-col items-center justify-center select-none transition-all min-h-64 py-12
-          ${!revealed ? 'cursor-pointer border-amber-400 hover:border-amber-600' : 'border-stone-300'}`}
+        className={`select-none rounded-sm border-2 bg-white p-5 transition-all ${
+          !revealed ? 'cursor-pointer border-amber-400 hover:border-amber-600' : 'border-stone-300'
+        }`}
       >
-        {/* 頭文字（常に表示） */}
-        <div className="text-[9rem] leading-none text-red-700 font-bold mb-4">
-          {card.kana}
+        <div className="grid gap-5 sm:grid-cols-[minmax(0,220px)_1fr] sm:items-center">
+          <div className="mx-auto w-full max-w-56">
+            <KarutaImage card={card} />
+          </div>
+          <div className="text-center sm:text-left">
+            <div className="mb-3 text-7xl font-bold leading-none text-red-700">{card.kana}</div>
+            {!revealed ? (
+              <div className="space-y-2">
+                <p className="text-lg leading-relaxed text-stone-800">絵札を見て、読み札を思い出す</p>
+                <p className="text-sm text-amber-700">タップして答えを表示</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-2xl leading-relaxed">{card.verse}</p>
+                <p className="text-sm text-stone-500">{card.topic}</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 読み札（タップで表示） */}
-        <div className={`text-center px-8 transition-opacity duration-500 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
-          <p className="text-2xl leading-relaxed">{card.verse}</p>
-        </div>
-
-        {!revealed && (
-          <p className="text-xs text-amber-600 mt-6 animate-pulse">タップして読み札を表示</p>
+        {revealed && (
+          <div className="mt-5 grid gap-4 border-t border-stone-200 pt-5 sm:grid-cols-[160px_1fr] sm:items-center">
+            <div className="mx-auto w-full max-w-40">
+              <YomifudaImage card={card} />
+            </div>
+            <p className="text-sm leading-relaxed text-stone-600">
+              読み札画像とテキストを見比べて、文字のまとまりと絵札の印象を一緒に覚える。
+            </p>
+          </div>
         )}
       </div>
 
-      {/* 次へボタン（読み札表示後に出現） */}
-      <div className={`mt-6 flex gap-4 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <button onClick={onExit} className="flex-1 py-3 border border-stone-300 bg-white text-sm">やめる</button>
-        <button onClick={onNext} className="flex-1 py-3 bg-stone-900 text-stone-50">次のカード →</button>
+      <div className={`mt-6 flex gap-4 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+        <button onClick={onExit} className="flex-1 border border-stone-300 bg-white py-3 text-sm">やめる</button>
+        <button onClick={onNext} className="flex-1 bg-stone-900 py-3 text-stone-50">次のカード →</button>
       </div>
     </div>
   );
 }
 
-function QuizSelect({ difficulty, setDifficulty, onStart }) {
+function QuizSelect({ difficulty, setDifficulty, quizMode, setQuizMode, onStart }) {
   return (
-    <div className="max-w-md mx-auto">
-      <h2 className="text-2xl mb-8 text-center">クイズ設定</h2>
-      <div className="flex flex-col gap-4 mb-8">
+    <div className="mx-auto max-w-xl">
+      <h2 className="mb-8 text-center text-2xl">クイズ設定</h2>
+      <section className="mb-8">
+        <h3 className="mb-3 text-sm font-bold text-stone-600">出題モード</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Object.entries(QUIZ_MODES).map(([key, { label, desc }]) => (
+            <button
+              key={key}
+              onClick={() => setQuizMode(key)}
+              className={`border p-4 text-left ${
+                quizMode === key ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
+              }`}
+            >
+              <div className="font-bold">{label}</div>
+              <div className="mt-1 text-sm opacity-75">{desc}</div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h3 className="mb-3 text-sm font-bold text-stone-600">選択肢の数</h3>
+      <div className="mb-8 flex flex-col gap-4">
         {Object.entries(DIFFICULTY).map(([key, { label, desc }]) => (
-          <button key={key} onClick={() => setDifficulty(key)}
-            className={`p-4 border text-left ${difficulty === key ? 'bg-stone-900 text-stone-50 border-stone-900' : 'bg-white border-stone-300 hover:border-stone-500'}`}>
+          <button
+            key={key}
+            onClick={() => setDifficulty(key)}
+            className={`border p-4 text-left ${
+              difficulty === key ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
+            }`}
+          >
             <div className="font-bold">{label}</div>
             <div className="text-sm opacity-70">{desc}</div>
           </button>
         ))}
       </div>
-      <button onClick={() => onStart(difficulty)}
-        className="w-full py-3 bg-red-700 text-stone-50 text-lg">
+      </section>
+      <button onClick={() => onStart(difficulty)} className="w-full bg-red-700 py-3 text-lg text-stone-50">
         {QUIZ_LENGTH}問スタート
       </button>
     </div>
   );
 }
 
-function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, onAnswer, onNext, onExit, onFinish }) {
+function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, quizMode, onAnswer, onNext, onExit, onFinish }) {
   const isFinished = score.total >= quizLength && result !== null;
-  const cols = choices.length <= 4 ? 'grid-cols-2' : 'grid-cols-3';
+  const isImageMode = quizMode === 'imageToVerse';
+  const cols = isImageMode ? 'grid-cols-1 sm:grid-cols-2' : choices.length <= 4 ? 'grid-cols-2' : 'grid-cols-3';
+  const correctLabel = isImageMode ? card.verse : `「${card.kana}」`;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* ヘッダー */}
-      <div className="flex justify-between items-center mb-4 text-sm">
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-4 flex items-center justify-between text-sm">
         <button onClick={onExit} className="text-stone-600 hover:text-stone-900">← やめる</button>
         <div className="flex gap-4 text-stone-600">
-          {combo >= 3 && (
-            <span className="text-amber-600 font-bold">{combo}連続🔥</span>
-          )}
+          {combo >= 3 && <span className="font-bold text-amber-600">{combo}連続</span>}
           <span>{score.total} / {quizLength}問</span>
           <span className="text-emerald-700">{score.correct}正解</span>
         </div>
       </div>
 
-      {/* プログレスバー */}
-      <div className="w-full bg-stone-200 h-1.5 mb-6">
-        <div className="bg-red-700 h-1.5 transition-all" style={{ width: `${(score.total / quizLength) * 100}%` }} />
+      <div className="mb-6 h-1.5 w-full bg-stone-200">
+        <div className="h-1.5 bg-red-700 transition-all" style={{ width: `${(score.total / quizLength) * 100}%` }} />
       </div>
 
-      {/* 問題 */}
-      <div className="bg-white border border-stone-300 p-8 mb-6">
-        <p className="text-sm text-stone-500 mb-3">読み札の頭文字はどれ？</p>
-        <p className="text-xl leading-relaxed">{card.verse}</p>
+      <div className="mb-6 border border-stone-300 bg-white p-8">
+        <p className="mb-4 text-sm text-stone-500">
+          {isImageMode ? '絵札に合う読み札はどれ？' : '読み札の頭文字はどれ？'}
+        </p>
+        {isImageMode ? (
+          <div className="mx-auto max-w-72">
+            <KarutaImage card={card} />
+          </div>
+        ) : (
+          <p className="text-xl leading-relaxed">{card.verse}</p>
+        )}
       </div>
 
-      {/* 選択肢 */}
       <div className={`grid ${cols} gap-4`}>
-        {choices.map(c => (
-          <button key={c.kana} onClick={() => result === null && onAnswer(c.kana)} disabled={result !== null}
-            className={`text-4xl py-6 border transition-all ${
+        {choices.map((choice) => (
+          <button
+            key={choice.kana}
+            onClick={() => result === null && onAnswer(choice.kana)}
+            disabled={result !== null}
+            className={`border py-6 transition-all ${isImageMode ? 'px-4 text-left text-base leading-relaxed' : 'text-4xl'} ${
               result === null
-                ? 'bg-white border-stone-300 hover:border-red-700 hover:shadow'
-                : c.kana === card.kana
-                  ? 'bg-emerald-100 border-emerald-500 text-emerald-900'
-                  : 'bg-white border-stone-200 opacity-40'
-            }`}>
-            {c.kana}
+                ? 'border-stone-300 bg-white hover:border-red-700 hover:shadow'
+                : choice.kana === card.kana
+                  ? 'border-emerald-500 bg-emerald-100 text-emerald-900'
+                  : 'border-stone-200 bg-white opacity-40'
+            }`}
+          >
+            {isImageMode ? choice.verse : choice.kana}
           </button>
         ))}
       </div>
 
-      {/* 結果フィードバック */}
       {result !== null && (
         <div className="mt-6 text-center">
-          {combo >= 5 && <p className="text-amber-500 text-lg mb-1">🎉 {combo}連続コンボ！</p>}
-          {combo === 3 && <p className="text-amber-500 text-lg mb-1">🔥 3連続！</p>}
-          <p className={`text-xl mb-2 ${result ? 'text-emerald-700' : 'text-red-700'}`}>
-            {result ? '正解！' : `不正解　正解は「${card.kana}」`}
+          {combo >= 5 && <p className="mb-1 text-lg text-amber-500">{combo}連続コンボ</p>}
+          {combo === 3 && <p className="mb-1 text-lg text-amber-500">3連続</p>}
+          <p className={`mb-2 text-xl ${result ? 'text-emerald-700' : 'text-red-700'}`}>
+            {result ? '正解！' : `不正解　正解は${correctLabel}`}
           </p>
-          <p className="text-sm text-stone-500 mb-4">{card.verse}（{card.topic}）</p>
-          {isFinished
-            ? <button onClick={onFinish} className="px-8 py-2 bg-red-700 text-stone-50">結果を見る</button>
-            : <button onClick={onNext} className="px-8 py-2 bg-stone-900 text-stone-50">次の問題</button>
-          }
+          <p className="mb-4 text-sm text-stone-500">{card.verse}（{card.topic}）</p>
+          {isFinished ? (
+            <button onClick={onFinish} className="bg-red-700 px-8 py-2 text-stone-50">結果を見る</button>
+          ) : (
+            <button onClick={onNext} className="bg-stone-900 px-8 py-2 text-stone-50">次の問題</button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function QuizResult({ score, maxCombo, onRetry, onHome }) {
+function QuizResult({ score, maxCombo, mistakes, onRetry, onHome, onReview }) {
   const pct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
+  const reviewCards = Array.from(new Map(mistakes.map((mistake) => [mistake.card.kana, mistake.card])).values());
   const grade =
-    pct === 100 ? '満点！🏆' :
-    pct >= 80  ? 'すばらしい！🌸' :
-    pct >= 60  ? 'よくできました🌿' :
-    pct >= 40  ? 'もう少し📖' : 'もっと練習しよう💪';
+    pct === 100 ? '満点！' :
+    pct >= 80 ? 'すばらしい！' :
+    pct >= 60 ? 'よくできました' :
+    pct >= 40 ? 'もう少し' : 'もっと練習しよう';
 
   return (
-    <div className="max-w-md mx-auto text-center">
-      <h2 className="text-2xl mb-8">クイズ結果</h2>
-      <div className="bg-white border border-stone-300 p-10 mb-6">
-        <div className="text-6xl font-bold text-red-700 mb-2">{pct}<span className="text-3xl">%</span></div>
-        <div className="text-xl mb-6">{grade}</div>
+    <div className="mx-auto max-w-md text-center">
+      <h2 className="mb-8 text-2xl">クイズ結果</h2>
+      <div className="mb-6 border border-stone-300 bg-white p-10">
+        <div className="mb-2 text-6xl font-bold text-red-700">{pct}<span className="text-3xl">%</span></div>
+        <div className="mb-6 text-xl">{grade}</div>
         <div className="flex justify-center gap-8 text-sm text-stone-600">
           <div><div className="text-2xl font-bold text-stone-900">{score.correct}</div>正解</div>
           <div><div className="text-2xl font-bold text-stone-900">{score.total - score.correct}</div>不正解</div>
           <div><div className="text-2xl font-bold text-amber-600">{maxCombo}</div>最大コンボ</div>
         </div>
       </div>
+      <section className="mb-6 border border-stone-300 bg-white p-5 text-left">
+        <h3 className="mb-3 text-sm font-bold text-stone-700">復習する札</h3>
+        {reviewCards.length === 0 ? (
+          <p className="text-sm text-stone-600">間違えた札はありません。次は別モードでも確認できます。</p>
+        ) : (
+          <div className="grid gap-2">
+            {reviewCards.map((card) => (
+              <button
+                key={card.kana}
+                onClick={() => onReview(card)}
+                className="flex items-center justify-between border border-stone-200 bg-stone-50 px-3 py-2 text-left text-sm hover:border-red-700"
+              >
+                <span>
+                  <span className="mr-3 text-xl text-red-700">{card.kana}</span>
+                  {card.verse}
+                </span>
+                <span className="text-xs text-stone-500">詳細</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
       <div className="flex gap-4">
-        <button onClick={onHome} className="flex-1 py-3 border border-stone-300 bg-white">一覧に戻る</button>
-        <button onClick={onRetry} className="flex-1 py-3 bg-red-700 text-stone-50">もう一度</button>
+        <button onClick={onHome} className="flex-1 border border-stone-300 bg-white py-3">一覧に戻る</button>
+        <button onClick={onRetry} className="flex-1 bg-red-700 py-3 text-stone-50">もう一度</button>
       </div>
+    </div>
+  );
+}
+
+function ReadinessView() {
+  return (
+    <div className="space-y-8">
+      <section className="bg-white p-6">
+        <h2 className="mb-4 text-2xl">公開前確認</h2>
+        <div className="mb-5 overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <tbody>
+              {licenseSummaryFields.map((field) => (
+                <tr key={field.label}>
+                  <th className="w-40 border border-stone-300 bg-stone-100 px-3 py-2 text-left">{field.label}</th>
+                  <td className="border border-stone-300 px-3 py-2">{field.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {releaseGates.map((gate) => (
+            <div key={gate.id} className={`border p-4 ${gate.done ? 'border-emerald-300 bg-emerald-50' : 'border-amber-300 bg-amber-50'}`}>
+              <div className="text-sm font-bold">{gate.done ? '完了' : '未完了'}</div>
+              <div className="mt-1 text-sm">{gate.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-white p-6">
+        <h2 className="mb-4 text-xl font-bold">公開前チェックリスト</h2>
+        <ul className="space-y-2 text-sm">
+          {PUBLICATION_CHECKS.map((item) => (
+            <li key={item} className="border border-stone-200 bg-stone-50 px-3 py-2">{item}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="bg-white p-6">
+        <h2 className="mb-4 text-xl font-bold">利用報告書の下書き項目</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <tbody>
+              {REPORT_DRAFT_FIELDS.map((field) => (
+                <tr key={field.label}>
+                  <th className="w-40 border border-stone-300 bg-stone-100 px-3 py-2 text-left">{field.label}</th>
+                  <td className="border border-stone-300 px-3 py-2">{field.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
