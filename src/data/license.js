@@ -8,8 +8,8 @@ export const LICENSE = {
   officialAppNotice: '本アプリは群馬県の利用許諾を得て制作されたもので、群馬県の公式アプリではありません。',
   officialDataApplied: true,
   displayConditionsReviewed: true,
-  publicReleaseAllowed: false,
-  dataNotice: '群馬県公式HP掲載の絵札・読み札データを反映済みです。本アプリは群馬県の公式アプリではありません。公開操作は、公開URLと利用報告の準備を確認してから明示承認で行ってください。',
+  publicReleaseAllowed: true,
+  dataNotice: '群馬県公式HP掲載の絵札・読み札データを反映済みです。本アプリは群馬県の公式アプリではありません。',
 };
 
 export const getCreditLine = () =>

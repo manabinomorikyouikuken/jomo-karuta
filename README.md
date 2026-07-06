@@ -9,11 +9,11 @@
 
 公式画像・読み札データの再配布、素材利用、一括ダウンロードは行っていません。
 
-## 公開予定URL
+## 公開URL
 
 https://manabinomorikyouikuken.github.io/jomo-karuta/
 
-## 公開前の注意
+## 公開後の注意
 
-公開・販売は、人間確認後に `src/data/license.js` の `publicReleaseAllowed` を `true` にしてから行います。
+公開URL、公開日、画面キャプチャを利用報告用に記録します。
 2027年3月31日を過ぎた状態で公開を継続しません。
