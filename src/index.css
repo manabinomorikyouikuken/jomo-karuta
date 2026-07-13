@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * The five widest official reading-card scans are 385x414. Using this
+ * ratio for paired detail frames lets every official image keep its aspect
+ * ratio while matching the displayed card height. No source image is cropped
+ * or stretched.
+ */
+.karuta-pair-frame {
+  aspect-ratio: 385 / 414;
+}

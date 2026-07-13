@@ -400,7 +400,11 @@ function FilterButton({ label, active, onClick }) {
 }
 
 function KarutaImage({ card, variant = 'large' }) {
-  const sizeClass = variant === 'thumb' ? 'aspect-[4/5] text-xs' : 'aspect-[4/5] text-sm';
+  const sizeClass = variant === 'pair'
+    ? 'karuta-pair-frame text-sm'
+    : variant === 'thumb'
+      ? 'aspect-[4/5] text-xs'
+      : 'aspect-[4/5] text-sm';
 
   if (card.imageSrc) {
     return (
@@ -424,10 +428,12 @@ function KarutaImage({ card, variant = 'large' }) {
   );
 }
 
-function YomifudaImage({ card }) {
+function YomifudaImage({ card, variant = 'large' }) {
+  const sizeClass = variant === 'pair' ? 'karuta-pair-frame' : 'aspect-[4/5]';
+
   if (card.readingImageSrc) {
     return (
-      <div className="flex aspect-[4/5] overflow-hidden border border-stone-300 bg-white">
+      <div className={`flex overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
         <img
           src={card.readingImageSrc}
           alt={card.readingImageAlt}
@@ -440,7 +446,7 @@ function YomifudaImage({ card }) {
   }
 
   return (
-    <div className="flex aspect-[4/5] flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-sm text-stone-500">
+    <div className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-sm text-stone-500 ${sizeClass}`}>
       <span className="font-bold text-stone-700">読み札枠</span>
       <span>公式データ待ち</span>
     </div>
@@ -454,11 +460,11 @@ function DetailView({ card, onBack }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <figure>
             <figcaption className="mb-2 text-sm font-bold text-stone-600">絵札</figcaption>
-            <KarutaImage card={card} />
+            <KarutaImage card={card} variant="pair" />
           </figure>
           <figure>
             <figcaption className="mb-2 text-sm font-bold text-stone-600">読み札</figcaption>
-            <YomifudaImage card={card} />
+            <YomifudaImage card={card} variant="pair" />
           </figure>
         </div>
         <div className="mb-4 mt-6 text-center text-8xl text-red-700">{card.kana}</div>
