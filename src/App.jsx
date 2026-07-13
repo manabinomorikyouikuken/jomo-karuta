@@ -30,6 +30,51 @@ const QUIZ_MODES = {
 };
 
 const QUIZ_LENGTH = 10;
+const REVIEW_STORAGE_KEY = 'jomo-karuta-review-kanas-v1';
+
+const shuffleItems = (items) => {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+};
+
+const getJapanDateKey = () => new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Asia/Tokyo',
+}).format(new Date());
+
+const getDailyCards = () => {
+  const seed = getJapanDateKey();
+  let value = Array.from(seed).reduce((total, character) => (total * 31 + character.charCodeAt(0)) >>> 0, 7);
+  const ordered = [...CARDS];
+
+  for (let index = ordered.length - 1; index > 0; index -= 1) {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    const swapIndex = value % (index + 1);
+    [ordered[index], ordered[swapIndex]] = [ordered[swapIndex], ordered[index]];
+  }
+
+  return ordered.slice(0, QUIZ_LENGTH);
+};
+
+const readReviewKanas = () => {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(REVIEW_STORAGE_KEY) || '[]');
+    return Array.isArray(stored) ? stored.filter((kana) => CARDS.some((card) => card.kana === kana)) : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeReviewKanas = (kanas) => {
+  try {
+    window.localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(kanas));
+  } catch {
+    // Private browsing or storage restrictions should not block learning.
+  }
+};
 
 export default function App() {
   const [view, setView] = useState('list');
@@ -45,32 +90,40 @@ export default function App() {
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [mistakes, setMistakes] = useState([]);
+  const [quizDeck, setQuizDeck] = useState([]);
+  const [reviewKanas, setReviewKanas] = useState(readReviewKanas);
 
   const [flashIndex, setFlashIndex] = useState(0);
   const [flashOrder, setFlashOrder] = useState([]);
+  const [flashTitle, setFlashTitle] = useState('フラッシュカード');
+  const [flashKind, setFlashKind] = useState('all');
 
   const filteredCards = useMemo(
     () => (filter === 'all' ? CARDS : CARDS.filter((card) => card.category === filter)),
     [filter],
   );
+  const reviewCards = useMemo(
+    () => reviewKanas.map((kana) => CARDS.find((card) => card.kana === kana)).filter(Boolean),
+    [reviewKanas],
+  );
 
-  const buildQuestion = (diff = difficulty) => {
-    const card = CARDS[Math.floor(Math.random() * CARDS.length)];
+  const buildQuestion = (card, diff = difficulty) => {
     const n = DIFFICULTY[diff].choices;
-    const wrong = CARDS.filter((candidate) => candidate.kana !== card.kana)
-      .sort(() => Math.random() - 0.5)
+    const wrong = shuffleItems(CARDS.filter((candidate) => candidate.kana !== card.kana))
       .slice(0, n - 1);
 
     return {
       card,
-      choices: [card, ...wrong].sort(() => Math.random() - 0.5),
+      choices: shuffleItems([card, ...wrong]),
     };
   };
 
   const startQuiz = (diff = difficulty) => {
-    const { card, choices } = buildQuestion(diff);
+    const [card, ...remainingCards] = shuffleItems(CARDS);
+    const { choices } = buildQuestion(card, diff);
     setQuizCard(card);
     setQuizChoices(choices);
+    setQuizDeck(remainingCards);
     setQuizResult(null);
     setQuizScore({ correct: 0, total: 0 });
     setCombo(0);
@@ -80,10 +133,30 @@ export default function App() {
   };
 
   const nextQuestion = () => {
-    const { card, choices } = buildQuestion();
+    const [card, ...remainingCards] = quizDeck;
+    if (!card) return;
+    const { choices } = buildQuestion(card);
     setQuizCard(card);
     setQuizChoices(choices);
+    setQuizDeck(remainingCards);
     setQuizResult(null);
+  };
+
+  const rememberReviewCard = (card) => {
+    setReviewKanas((current) => {
+      if (current.includes(card.kana)) return current;
+      const next = [...current, card.kana];
+      writeReviewKanas(next);
+      return next;
+    });
+  };
+
+  const removeReviewCard = (card) => {
+    setReviewKanas((current) => {
+      const next = current.filter((kana) => kana !== card.kana);
+      writeReviewKanas(next);
+      return next;
+    });
   };
 
   const answerQuiz = (kana) => {
@@ -94,6 +167,7 @@ export default function App() {
     setQuizResult(correct);
     if (!correct) {
       const chosen = CARDS.find((card) => card.kana === kana);
+      rememberReviewCard(quizCard);
       setMistakes((current) => [
         ...current,
         {
@@ -110,16 +184,29 @@ export default function App() {
     }));
   };
 
-  const startFlash = () => {
-    const order = [...CARDS].sort(() => Math.random() - 0.5);
+  const startFlashSession = (order, title, kind) => {
     setFlashOrder(order);
     setFlashIndex(0);
+    setFlashTitle(title);
+    setFlashKind(kind);
     setView('flash');
+  };
+
+  const startFlash = () => {
+    startFlashSession(shuffleItems(CARDS), 'フラッシュカード', 'all');
+  };
+
+  const startDailyFlash = () => {
+    startFlashSession(getDailyCards(), '今日の10枚', 'daily');
   };
 
   const nextFlash = () => {
     if (flashIndex + 1 >= flashOrder.length) {
-      startFlash();
+      if (flashKind === 'daily') {
+        startDailyFlash();
+      } else {
+        startFlash();
+      }
     } else {
       setFlashIndex((index) => index + 1);
     }
@@ -151,6 +238,7 @@ export default function App() {
             <NavButton active={view === 'list'} onClick={() => setView('list')}>一覧</NavButton>
             <NavButton active={view === 'flash'} onClick={() => startFlash()}>フラッシュ</NavButton>
             <NavButton active={view === 'quiz' || view === 'quiz-select'} onClick={() => setView('quiz-select')}>クイズ</NavButton>
+            <NavButton active={view === 'review'} onClick={() => setView('review')}>復習</NavButton>
             <NavButton active={view === 'readiness'} onClick={() => setView('readiness')}>公開前確認</NavButton>
           </nav>
         </div>
@@ -160,7 +248,13 @@ export default function App() {
         <StatusBanner />
 
         {view === 'list' && (
-          <ListView cards={filteredCards} filter={filter} setFilter={setFilter} onSelect={openCard} />
+          <ListView
+            cards={filteredCards}
+            filter={filter}
+            setFilter={setFilter}
+            onSelect={openCard}
+            onStartDaily={startDailyFlash}
+          />
         )}
         {view === 'detail' && selectedCard && (
           <DetailView card={selectedCard} onBack={() => setView('list')} />
@@ -171,6 +265,7 @@ export default function App() {
             card={flashOrder[flashIndex]}
             index={flashIndex}
             total={flashOrder.length}
+            title={flashTitle}
             onNext={nextFlash}
             onExit={() => setView('list')}
           />
@@ -209,6 +304,9 @@ export default function App() {
             onHome={() => setView('list')}
             onReview={(card) => openCard(card)}
           />
+        )}
+        {view === 'review' && (
+          <ReviewView cards={reviewCards} onSelect={openCard} onRemove={removeReviewCard} />
         )}
         {view === 'readiness' && <ReadinessView />}
       </main>
@@ -253,10 +351,16 @@ function LicenseCredit() {
   );
 }
 
-function ListView({ cards, filter, setFilter, onSelect }) {
+function ListView({ cards, filter, setFilter, onSelect, onStartDaily }) {
   return (
     <div>
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
+        <button
+          onClick={onStartDaily}
+          className="border border-red-700 bg-red-700 px-3 py-1.5 text-sm text-white hover:bg-red-800"
+        >
+          今日の10枚
+        </button>
         <FilterButton label="すべて" active={filter === 'all'} onClick={() => setFilter('all')} />
         {Object.entries(CATEGORIES).map(([key, { label }]) => (
           <FilterButton key={key} label={label} active={filter === key} onClick={() => setFilter(key)} />
@@ -369,6 +473,36 @@ function DetailView({ card, onBack }) {
           <p className="leading-relaxed text-stone-700">{card.sampleCommentary}</p>
           <p className="mt-2 text-xs text-amber-900">絵札・読み札とは別の独自学習メモです。群馬県が作成した解説文ではありません。</p>
         </section>
+        <section className="mt-4 border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
+          <p>
+            <span className="font-bold text-stone-800">解説の確認状態：</span>
+            {card.commentaryStatus}
+          </p>
+          {card.commentaryVerifiedAt && (
+            <p className="mt-1 text-xs text-stone-500">最終確認日：{card.commentaryVerifiedAt}</p>
+          )}
+          {card.commentarySources.length > 0 ? (
+            <div className="mt-2">
+              <p className="text-xs font-bold text-stone-700">根拠資料</p>
+              <ul className="mt-1 space-y-1">
+                {card.commentarySources.map((source) => (
+                  <li key={source.url}>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-red-800 underline underline-offset-2 hover:text-red-950"
+                    >
+                      {source.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-stone-500">個別の根拠資料は今後追加します。</p>
+          )}
+        </section>
       </div>
       <button onClick={onBack} className="mt-4 w-full border border-stone-300 bg-white py-4 text-sm text-stone-700 hover:bg-stone-50">
         ← 一覧に戻る
@@ -377,14 +511,14 @@ function DetailView({ card, onBack }) {
   );
 }
 
-function FlashView({ card, index, total, onNext, onExit }) {
+function FlashView({ card, index, total, title, onNext, onExit }) {
   const [revealed, setRevealed] = useState(false);
 
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between text-sm text-stone-500">
         <button onClick={onExit}>← やめる</button>
-        <span>{index + 1} / {total}</span>
+        <span>{title}　{index + 1} / {total}</span>
       </div>
 
       <div
@@ -578,6 +712,7 @@ function QuizResult({ score, maxCombo, mistakes, onRetry, onHome, onReview }) {
           <p className="text-sm text-stone-600">間違えた札はありません。次は別モードでも確認できます。</p>
         ) : (
           <div className="grid gap-2">
+            <p className="mb-1 text-xs text-stone-500">間違えた札は、このブラウザの復習リストに保存されています。</p>
             {reviewCards.map((card) => (
               <button
                 key={card.kana}
@@ -598,6 +733,49 @@ function QuizResult({ score, maxCombo, mistakes, onRetry, onHome, onReview }) {
         <button onClick={onHome} className="flex-1 border border-stone-300 bg-white py-3">一覧に戻る</button>
         <button onClick={onRetry} className="flex-1 bg-red-700 py-3 text-stone-50">もう一度</button>
       </div>
+    </div>
+  );
+}
+
+function ReviewView({ cards, onSelect, onRemove }) {
+  return (
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-6">
+        <h2 className="text-2xl">復習リスト</h2>
+        <p className="mt-2 text-sm text-stone-600">クイズで間違えた札を、このブラウザ内だけで保存しています。</p>
+      </div>
+
+      {cards.length === 0 ? (
+        <section className="border border-stone-300 bg-white p-6 text-sm text-stone-600">
+          まだ復習する札はありません。クイズに挑戦すると、間違えた札がここに追加されます。
+        </section>
+      ) : (
+        <section className="border border-stone-300 bg-white p-5">
+          <div className="mb-4 flex items-center justify-between text-sm text-stone-600">
+            <span>{cards.length}枚</span>
+            <span>端末内保存</span>
+          </div>
+          <div className="grid gap-2">
+            {cards.map((card) => (
+              <div key={card.kana} className="flex items-center gap-2 border border-stone-200 bg-stone-50 p-2">
+                <button
+                  onClick={() => onSelect(card)}
+                  className="flex min-w-0 flex-1 items-center gap-3 px-2 py-1 text-left hover:text-red-800"
+                >
+                  <span className="text-2xl text-red-700">{card.kana}</span>
+                  <span className="truncate text-sm">{card.verse}</span>
+                </button>
+                <button
+                  onClick={() => onRemove(card)}
+                  className="shrink-0 border border-stone-300 bg-white px-2 py-1 text-xs text-stone-600 hover:border-red-700 hover:text-red-800"
+                >
+                  外す
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
