@@ -2,14 +2,14 @@ const OFFICIAL_SOURCE_NOTE = '群馬県公式HP掲載「（別紙）絵札・読
 const assetSrc = (path) => `${import.meta.env.BASE_URL}${path}`;
 
 const OFFICIAL_CARDS = [
-  { kana: 'あ', slug: 'a', verse: '浅間のいたずら 鬼の押出し', topic: '浅間山・鬼押出し', sampleCommentary: '吾妻郡嬬恋村にある溶岩台地「鬼押出し」。浅間山の噴火(1783年)でできた奇岩の景勝地。', category: 'shizen' },
+  { kana: 'あ', slug: 'a', verse: '浅間のいたずら 鬼の押出し', topic: '浅間山・鬼押出し', sampleCommentary: '吾妻郡嬬恋村にある溶岩台地「鬼押出し」。浅間山は古く「あさま」と読まれていたが、語源は確定しておらず、朝熊・朝雲・煙に関わる語など諸説がある。約1万年前から活動を続け、1108年・1128年・1783年に大規模噴火が起きた。1783年の天明噴火では鬼押出し溶岩が流れ、近年も2004年・2008年・2009年・2015年・2019年に噴火が記録されている。', category: 'shizen' },
   { kana: 'い', slug: 'i', verse: '伊香保温泉 日本の名湯', topic: '伊香保温泉', sampleCommentary: '渋川市の山あいにある古湯。石段街は365段あり、1年365日のにぎわいを願って整えられた。湯の花まんじゅうは温泉まんじゅうの始まりとして知られる。竹久夢二ゆかりの記念館や、明治期にハワイ王国公使ロバート・W・アルウィンの避暑用別邸が置かれたことも印象的。アルウィンは日本人のハワイ移民にも深く関わった人物で、伊香保が国際的な避暑地でもあったことを伝えている。', category: 'meisho' },
   { kana: 'う', slug: 'u', verse: '碓氷峠の 関所跡', topic: '碓氷峠', sampleCommentary: '安中市松井田町横川にある江戸時代の関所跡。中山道の難所として知られる。関所の近くにはJR信越本線の横川駅があり、駅前には峠の釜めしで有名な荻野屋の横川本店がある。', category: 'rekishi' },
   { kana: 'え', slug: 'e', verse: '縁起だるまの 少林山', topic: '少林山達磨寺', sampleCommentary: '高崎市鼻高町にある曹洞宗の寺院。少林山達磨寺は高崎だるま発祥の地として知られ、高崎市はだるまの全国一の生産地。眉に鶴、ひげに亀が描かれるのも特徴。年間消費量について都道府県別の公的な全国順位は確認できないため、「消費量1位」とは断定できない。', category: 'meisho' },
   { kana: 'お', slug: 'o', verse: '太田金山 子育呑龍', topic: '呑龍上人', sampleCommentary: '呑龍上人（1556-1623）は、太田の大光院を開いた浄土宗の僧。貧しさから苦しむ子どもを寺で養育したことから、「子育呑龍」と親しまれたところが印象的。', category: 'jinbutsu' },
   { kana: 'か', slug: 'ka', verse: '関東と信越 つなぐ高崎市', topic: '高崎市', sampleCommentary: '群馬県最大の都市。北陸・上越・長野新幹線の分岐点として交通の要衝。', category: 'meisho' },
   { kana: 'き', slug: 'ki', verse: '桐生は日本の 機どころ', topic: '桐生織物', sampleCommentary: '桐生市は絹織物の産地として江戸時代から栄えた。「西の西陣、東の桐生」と称される。', category: 'sangyo' },
-  { kana: 'く', slug: 'ku', verse: '草津よいとこ 薬の温泉', topic: '草津温泉', sampleCommentary: '吾妻郡草津町。日本三名泉のひとつ。源頼朝が立ち寄ったという伝承があり、江戸時代には八代将軍徳川吉宗が草津の湯を江戸城へ取り寄せたとも伝わる。湯畑と強い酸性の湯が町のシンボル。', category: 'meisho' },
+  { kana: 'く', slug: 'ku', verse: '草津よいとこ 薬の温泉', topic: '草津温泉', sampleCommentary: '吾妻郡草津町。日本三名泉のひとつ。源頼朝が立ち寄ったという伝承があり、江戸時代には八代将軍徳川吉宗が草津の湯を江戸城へ取り寄せたとも伝わる。湯畑と強い酸性の湯が町のシンボル。定番のお土産には、二色あんまんじゅう（本家ちちや）、松むら饅頭（松むら饅頭本舗）、湯畑プリン（草津温泉プリン）、草津ラスク（グランデフューメ草津）、手作り草津温泉クッキー（湯の香本舗）、草津温泉たまごボーロ（草津たまごファーム）などがある。', category: 'meisho' },
   { kana: 'け', slug: 'ke', verse: '県都前橋 生糸の市', topic: '前橋市', sampleCommentary: '群馬県の県庁所在地。明治期から生糸の集散地として栄えた。', category: 'meisho' },
   { kana: 'こ', slug: 'ko', verse: '心の燈台 内村鑑三', topic: '内村鑑三', sampleCommentary: '内村鑑三（1861-1930）は、高崎藩士の家に生まれたキリスト教思想家。教会組織に頼りきらず聖書を学ぶ「無教会主義」を唱えた。日本（Japan）とイエス（Jesus）という「二つのJ」に仕える考え方が印象的。', category: 'jinbutsu' },
   { kana: 'さ', slug: 'sa', verse: '三波石と共に 名高い冬桜', topic: '桜山公園', sampleCommentary: '藤岡市の桜山公園。秋から冬にかけて咲く冬桜と、庭石として名高い三波石が見どころ。', category: 'shizen' },
@@ -26,7 +26,7 @@ const OFFICIAL_CARDS = [
   { kana: 'に', slug: 'ni', verse: '日本で最初の 富岡製糸', topic: '富岡製糸場', sampleCommentary: '明治5年(1872)創設の官営模範工場。2014年に世界文化遺産に登録。', category: 'rekishi' },
   { kana: 'ぬ', slug: 'nu', verse: '沼田城下の 塩原太助', topic: '塩原太助', sampleCommentary: '塩原太助（1743-1816）は、上野国出身で江戸に出た商人。薪炭問屋で働いたあと炭屋として成功し、公益のために私財を投じた。人情噺「塩原多助一代記」で知られる。', category: 'jinbutsu' },
   { kana: 'ね', slug: 'ne', verse: 'ねぎとこんにゃく 下仁田名産', topic: '下仁田町', sampleCommentary: '甘楽郡下仁田町は下仁田ねぎとこんにゃくの一大産地。', category: 'sangyo' },
-  { kana: 'の', slug: 'no', verse: '登る榛名の キャンプ村', topic: '榛名山', sampleCommentary: '高崎市にある成層火山。榛名湖畔はキャンプや観光の名所。上毛三山のひとつ。', category: 'shizen' },
+  { kana: 'の', slug: 'no', verse: '登る榛名の キャンプ村', topic: '榛名山', sampleCommentary: '高崎市にある成層火山。榛名湖畔はキャンプや観光の名所。上毛三山のひとつ。漫画・アニメ「頭文字D」では「秋名山」のモデルとされる、作品の舞台の一つとしても知られている。', category: 'shizen' },
   { kana: 'は', slug: 'ha', verse: '花山公園 つつじの名所', topic: 'つつじが岡公園', sampleCommentary: '館林市のつつじが岡公園は樹齢800年を超えるつつじを誇る日本最大級のつつじの名所。', category: 'meisho' },
   { kana: 'ひ', slug: 'hi', verse: '白衣観音 慈悲の御手', topic: '白衣大観音', sampleCommentary: '高崎市の慈眼院にある高さ41.8mの白衣観音像。1936年建立。高崎のシンボル。', category: 'meisho' },
   { kana: 'ふ', slug: 'fu', verse: '分福茶釜の 茂林寺', topic: '茂林寺', sampleCommentary: '館林市にある曹洞宗の寺院。「分福茶釜」の昔話の舞台として知られる。', category: 'meisho' },
@@ -54,6 +54,24 @@ const DEFAULT_COMMENTARY_METADATA = {
 };
 
 const COMMENTARY_METADATA = {
+  a: {
+    commentaryStatus: '気象庁・国土交通省資料で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '気象庁「浅間山」',
+        url: 'https://www.data.jma.go.jp/vois/data/tokyo/306_Asamayama/306_index.html',
+      },
+      {
+        label: '気象庁「浅間山 有史以降の火山活動」',
+        url: 'https://www.data.jma.go.jp/vois/data/tokyo/306_Asamayama/306_history.html',
+      },
+      {
+        label: '国土交通省「ふじあざみ」',
+        url: 'https://www.cbr.mlit.go.jp/fujisabo/oshirase/fujiazami/fujiazami_36/fujiazami_03.html',
+      },
+    ],
+  },
   u: {
     commentaryStatus: '安中市・荻野屋公式資料で確認',
     commentaryVerifiedAt: '2026-07-14',
@@ -129,7 +147,34 @@ const COMMENTARY_METADATA = {
     ],
   },
   ku: {
-    commentaryStatus: '伝承を含む・追加確認対象',
+    commentaryStatus: '伝承を含む・各店の公式情報で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '本家ちちや「温泉まんじゅう」',
+        url: 'https://honke-chichiya.com/manju/',
+      },
+      {
+        label: '松むら饅頭本舗「商品について」',
+        url: 'https://matsumura-manjyu.com/manjyu',
+      },
+      {
+        label: '草津温泉プリン「商品紹介」',
+        url: 'https://www.kusatsuonsen-purin.com/',
+      },
+      {
+        label: 'グランデフューメ草津「草津ラスク」',
+        url: 'https://grandefiume-kusatsu.com/collections/kusatsu-rusk',
+      },
+      {
+        label: '湯の香本舗「手作り草津温泉クッキー」',
+        url: 'https://www.yunokahonpo.com/products/list?category_id=36',
+      },
+      {
+        label: '草津温泉たまごボーロ（草津たまごファーム）',
+        url: 'https://nakayoshinoyu.com/products/kusatsuonsentamagoboro',
+      },
+    ],
   },
   shi: {
     commentaryStatus: '群馬県公式資料で確認',
@@ -156,6 +201,20 @@ const COMMENTARY_METADATA = {
       {
         label: '高崎市公式「多胡碑（観光情報）」',
         url: 'https://www.city.takasaki.gunma.jp/site/sightseeing/5006.html',
+      },
+    ],
+  },
+  no: {
+    commentaryStatus: '群馬県観光公式・作品公式資料で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '群馬県観光公式「『イニD』の聖地巡礼 前編」',
+        url: 'https://gunma-kanko.jp/features/380',
+      },
+      {
+        label: '頭文字Dポータル（Official website）',
+        url: 'https://initiald-portal.com/sp/contents/about/',
       },
     ],
   },
