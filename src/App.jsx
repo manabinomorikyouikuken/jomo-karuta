@@ -405,6 +405,7 @@ function KarutaImage({ card, variant = 'large' }) {
     : variant === 'thumb'
       ? 'aspect-[4/5] text-xs'
       : 'aspect-[4/5] text-sm';
+  const imageClass = variant === 'pair' ? 'h-full w-full object-fill' : 'h-full w-full object-contain';
 
   if (card.imageSrc) {
     return (
@@ -414,7 +415,7 @@ function KarutaImage({ card, variant = 'large' }) {
           alt={card.imageAlt}
           loading="lazy"
           decoding="async"
-          className="h-full w-full object-contain"
+          className={imageClass}
         />
       </div>
     );
@@ -430,6 +431,7 @@ function KarutaImage({ card, variant = 'large' }) {
 
 function YomifudaImage({ card, variant = 'large' }) {
   const sizeClass = variant === 'pair' ? 'karuta-pair-frame' : 'aspect-[4/5]';
+  const imageClass = variant === 'pair' ? 'h-full w-full object-fill' : 'h-full w-full object-contain';
 
   if (card.readingImageSrc) {
     return (
@@ -439,7 +441,7 @@ function YomifudaImage({ card, variant = 'large' }) {
           alt={card.readingImageAlt}
           loading="lazy"
           decoding="async"
-          className="h-full w-full object-contain"
+          className={imageClass}
         />
       </div>
     );
