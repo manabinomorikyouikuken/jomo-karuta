@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CARDS } from './data/cards.js';
 import { CATEGORIES } from './data/categories.js';
-import { LICENSE, getCreditLine, licenseSummaryFields, releaseGates } from './data/license.js';
-import { PUBLICATION_CHECKS, REPORT_DRAFT_FIELDS } from './data/releaseChecklist.js';
+import { LICENSE, getCreditLine } from './data/license.js';
 
 // =====================================================================
 // 上毛かるた 学習アプリ
@@ -239,7 +238,6 @@ export default function App() {
             <NavButton active={view === 'flash'} onClick={() => startFlash()}>フラッシュ</NavButton>
             <NavButton active={view === 'quiz' || view === 'quiz-select'} onClick={() => setView('quiz-select')}>クイズ</NavButton>
             <NavButton active={view === 'review'} onClick={() => setView('review')}>復習</NavButton>
-            <NavButton active={view === 'readiness'} onClick={() => setView('readiness')}>公開前確認</NavButton>
           </nav>
         </div>
       </header>
@@ -308,7 +306,6 @@ export default function App() {
         {view === 'review' && (
           <ReviewView cards={reviewCards} onSelect={openCard} onRemove={removeReviewCard} />
         )}
-        {view === 'readiness' && <ReadinessView />}
       </main>
 
       <footer className="mt-16 border-t border-stone-300 bg-stone-100">
@@ -784,61 +781,6 @@ function ReviewView({ cards, onSelect, onRemove }) {
           </div>
         </section>
       )}
-    </div>
-  );
-}
-
-function ReadinessView() {
-  return (
-    <div className="space-y-8">
-      <section className="bg-white p-6">
-        <h2 className="mb-4 text-2xl">公開前確認</h2>
-        <div className="mb-5 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <tbody>
-              {licenseSummaryFields.map((field) => (
-                <tr key={field.label}>
-                  <th className="w-40 border border-stone-300 bg-stone-100 px-3 py-2 text-left">{field.label}</th>
-                  <td className="border border-stone-300 px-3 py-2">{field.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {releaseGates.map((gate) => (
-            <div key={gate.id} className={`border p-4 ${gate.done ? 'border-emerald-300 bg-emerald-50' : 'border-amber-300 bg-amber-50'}`}>
-              <div className="text-sm font-bold">{gate.done ? '完了' : '未完了'}</div>
-              <div className="mt-1 text-sm">{gate.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-white p-6">
-        <h2 className="mb-4 text-xl font-bold">公開前チェックリスト</h2>
-        <ul className="space-y-2 text-sm">
-          {PUBLICATION_CHECKS.map((item) => (
-            <li key={item} className="border border-stone-200 bg-stone-50 px-3 py-2">{item}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="bg-white p-6">
-        <h2 className="mb-4 text-xl font-bold">利用報告書の下書き項目</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <tbody>
-              {REPORT_DRAFT_FIELDS.map((field) => (
-                <tr key={field.label}>
-                  <th className="w-40 border border-stone-300 bg-stone-100 px-3 py-2 text-left">{field.label}</th>
-                  <td className="border border-stone-300 px-3 py-2">{field.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
     </div>
   );
 }
