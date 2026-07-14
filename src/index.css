@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 /*
- * Paired detail frames use the same 4:5 canvas as the official picture-card
- * scans. Pair images fill this canvas without cropping so both cards occupy
- * the same visible size in the comparison view.
+ * The five widest official reading-card scans (あ・い・う・え・お) are
+ * 385x414. Use that ratio for the paired detail frame and keep images in
+ * their original proportions with object-contain. No crop or distortion.
  */
 .karuta-pair-frame {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 385 / 414;
 }
