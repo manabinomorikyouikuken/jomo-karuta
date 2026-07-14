@@ -4,8 +4,8 @@ const assetSrc = (path) => `${import.meta.env.BASE_URL}${path}`;
 const OFFICIAL_CARDS = [
   { kana: 'あ', slug: 'a', verse: '浅間のいたずら 鬼の押出し', topic: '浅間山・鬼押出し', sampleCommentary: '吾妻郡嬬恋村にある溶岩台地「鬼押出し」。浅間山の噴火(1783年)でできた奇岩の景勝地。', category: 'shizen' },
   { kana: 'い', slug: 'i', verse: '伊香保温泉 日本の名湯', topic: '伊香保温泉', sampleCommentary: '渋川市の山あいにある古湯。石段街は365段あり、1年365日のにぎわいを願って整えられた。湯の花まんじゅうは温泉まんじゅうの始まりとして知られる。竹久夢二ゆかりの記念館や、明治期にハワイ王国公使ロバート・W・アルウィンの避暑用別邸が置かれたことも印象的。アルウィンは日本人のハワイ移民にも深く関わった人物で、伊香保が国際的な避暑地でもあったことを伝えている。', category: 'meisho' },
-  { kana: 'う', slug: 'u', verse: '碓氷峠の 関所跡', topic: '碓氷峠', sampleCommentary: '安中市坂本にある江戸時代の関所跡。中山道の難所として知られる。', category: 'rekishi' },
-  { kana: 'え', slug: 'e', verse: '縁起だるまの 少林山', topic: '少林山達磨寺', sampleCommentary: '高崎市鼻高町にある曹洞宗の寺院。全国シェア約8割を誇る高崎だるまの発祥の地。', category: 'meisho' },
+  { kana: 'う', slug: 'u', verse: '碓氷峠の 関所跡', topic: '碓氷峠', sampleCommentary: '安中市松井田町横川にある江戸時代の関所跡。中山道の難所として知られる。関所の近くにはJR信越本線の横川駅があり、駅前には峠の釜めしで有名な荻野屋の横川本店がある。', category: 'rekishi' },
+  { kana: 'え', slug: 'e', verse: '縁起だるまの 少林山', topic: '少林山達磨寺', sampleCommentary: '高崎市鼻高町にある曹洞宗の寺院。少林山達磨寺は高崎だるま発祥の地として知られ、高崎市はだるまの全国一の生産地。眉に鶴、ひげに亀が描かれるのも特徴。年間消費量について都道府県別の公的な全国順位は確認できないため、「消費量1位」とは断定できない。', category: 'meisho' },
   { kana: 'お', slug: 'o', verse: '太田金山 子育呑龍', topic: '呑龍上人', sampleCommentary: '呑龍上人（1556-1623）は、太田の大光院を開いた浄土宗の僧。貧しさから苦しむ子どもを寺で養育したことから、「子育呑龍」と親しまれたところが印象的。', category: 'jinbutsu' },
   { kana: 'か', slug: 'ka', verse: '関東と信越 つなぐ高崎市', topic: '高崎市', sampleCommentary: '群馬県最大の都市。北陸・上越・長野新幹線の分岐点として交通の要衝。', category: 'meisho' },
   { kana: 'き', slug: 'ki', verse: '桐生は日本の 機どころ', topic: '桐生織物', sampleCommentary: '桐生市は絹織物の産地として江戸時代から栄えた。「西の西陣、東の桐生」と称される。', category: 'sangyo' },
@@ -54,6 +54,34 @@ const DEFAULT_COMMENTARY_METADATA = {
 };
 
 const COMMENTARY_METADATA = {
+  u: {
+    commentaryStatus: '安中市・荻野屋公式資料で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '安中市公式「碓氷関所跡」',
+        url: 'https://www.city.annaka.lg.jp/page/21633.html',
+      },
+      {
+        label: '荻野屋公式「横川本店」',
+        url: 'https://www.oginoya.co.jp/tenpo/shop-list/%E6%A8%AA%E5%B7%9D%E6%9C%AC%E5%BA%97/',
+      },
+    ],
+  },
+  e: {
+    commentaryStatus: '高崎市公式資料で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '高崎市公式「高崎だるまについて」',
+        url: 'https://www.city.takasaki.gunma.jp/site/sightseeing/3052.html',
+      },
+      {
+        label: '高崎市公式「高崎のここがスゴイ！ランキング」',
+        url: 'https://www.city.takasaki.gunma.jp/uploaded/attachment/12654.pdf',
+      },
+    ],
+  },
   i: {
     commentaryStatus: '公式観光資料で確認',
     commentaryVerifiedAt: '2026-07-13',
