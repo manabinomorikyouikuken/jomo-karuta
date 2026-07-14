@@ -7,10 +7,10 @@ const OFFICIAL_CARDS = [
   { kana: 'う', slug: 'u', verse: '碓氷峠の 関所跡', topic: '碓氷峠', sampleCommentary: '安中市松井田町横川にある江戸時代の関所跡。中山道の難所として知られる。関所の近くにはJR信越本線の横川駅があり、駅前には峠の釜めしで有名な荻野屋の横川本店がある。', category: 'rekishi' },
   { kana: 'え', slug: 'e', verse: '縁起だるまの 少林山', topic: '少林山達磨寺', sampleCommentary: '高崎市鼻高町にある曹洞宗の寺院。少林山達磨寺は高崎だるま発祥の地として知られ、高崎市はだるまの全国一の生産地。眉に鶴、ひげに亀が描かれるのも特徴。年間消費量について都道府県別の公的な全国順位は確認できないため、「消費量1位」とは断定できない。', category: 'meisho' },
   { kana: 'お', slug: 'o', verse: '太田金山 子育呑龍', topic: '呑龍上人', sampleCommentary: '呑龍上人（1556-1623）は、太田の大光院を開いた浄土宗の僧。貧しさから苦しむ子どもを寺で養育したことから、「子育呑龍」と親しまれたところが印象的。', category: 'jinbutsu' },
-  { kana: 'か', slug: 'ka', verse: '関東と信越 つなぐ高崎市', topic: '高崎市', sampleCommentary: '群馬県最大の都市。北陸・上越・長野新幹線の分岐点として交通の要衝。', category: 'meisho' },
+  { kana: 'か', slug: 'ka', verse: '関東と信越 つなぐ高崎市', topic: '高崎市', sampleCommentary: '群馬県最大の都市。1598年（慶長3年）、箕輪城主の井伊直政が和田の地に高崎城を築いたことが、現在の高崎の町の出発点となった。直政が「松ヶ崎」と名づけようとしたところ、龍広寺の住職・白庵が「成功高大」の意味から「高崎」を勧めたという由来が伝わる。北陸・上越・長野新幹線の分岐点としても交通の要衝である。', category: 'meisho' },
   { kana: 'き', slug: 'ki', verse: '桐生は日本の 機どころ', topic: '桐生織物', sampleCommentary: '桐生市は絹織物の産地として江戸時代から栄えた。「西の西陣、東の桐生」と称される。', category: 'sangyo' },
   { kana: 'く', slug: 'ku', verse: '草津よいとこ 薬の温泉', topic: '草津温泉', sampleCommentary: '吾妻郡草津町。日本三名泉のひとつ。源頼朝が立ち寄ったという伝承があり、江戸時代には八代将軍徳川吉宗が草津の湯を江戸城へ取り寄せたとも伝わる。湯畑と強い酸性の湯が町のシンボル。定番のお土産には、二色あんまんじゅう（本家ちちや）、松むら饅頭（松むら饅頭本舗）、湯畑プリン（草津温泉プリン）、草津ラスク（グランデフューメ草津）、手作り草津温泉クッキー（湯の香本舗）、草津温泉たまごボーロ（草津たまごファーム）などがある。', category: 'meisho' },
-  { kana: 'け', slug: 'ke', verse: '県都前橋 生糸の市', topic: '前橋市', sampleCommentary: '群馬県の県庁所在地。明治期から生糸の集散地として栄えた。', category: 'meisho' },
+  { kana: 'け', slug: 'ke', verse: '県都前橋 生糸の市', topic: '前橋市', sampleCommentary: '群馬県の県庁所在地。古くは「厩橋（うまやばし）」と呼ばれ、現在の利根川付近を流れていた車川に架かる「駅家（うまや）の橋」に由来すると伝えられる。17世紀半ば、前橋藩主の酒井忠清の時代に「前橋」へ改められた。明治期からは生糸の集散地として栄えた。', category: 'meisho' },
   { kana: 'こ', slug: 'ko', verse: '心の燈台 内村鑑三', topic: '内村鑑三', sampleCommentary: '内村鑑三（1861-1930）は、高崎藩士の家に生まれたキリスト教思想家。教会組織に頼りきらず聖書を学ぶ「無教会主義」を唱えた。日本（Japan）とイエス（Jesus）という「二つのJ」に仕える考え方が印象的。', category: 'jinbutsu' },
   { kana: 'さ', slug: 'sa', verse: '三波石と共に 名高い冬桜', topic: '桜山公園', sampleCommentary: '藤岡市の桜山公園。秋から冬にかけて咲く冬桜と、庭石として名高い三波石が見どころ。', category: 'shizen' },
   { kana: 'し', slug: 'shi', verse: 'しのぶ毛の国 二子塚', topic: '二子塚', sampleCommentary: '古代の毛野国と群馬の歴史を思わせる札。「二子塚」は、前方後円墳の二つのふくらみを思わせる古墳名として理解するとわかりやすい。群馬県では昭和10年の全県調査で8,423基の古墳が確認され、全体では1万基以上が作られたと想定されている。', category: 'rekishi' },
@@ -45,7 +45,7 @@ const OFFICIAL_CARDS = [
   { kana: 'る', slug: 'ru', verse: 'ループで名高い 清水トンネル', topic: '清水トンネル', sampleCommentary: '上越線の土合駅付近を貫くトンネル。三国山脈の難工事として知られ、ループ線で高低差を克服した。', category: 'rekishi' },
   { kana: 'れ', slug: 're', verse: '歴史に名高い 新田義貞', topic: '新田義貞', sampleCommentary: '新田義貞（1301-1338）は、上野国新田荘を本拠とした鎌倉末期・南北朝時代の武将。1333年に鎌倉を攻め、鎌倉幕府を滅ぼす大きな役割を果たした。稲村ヶ崎で太刀を海へ投じたという伝説が残る。', category: 'jinbutsu' },
   { kana: 'ろ', slug: 'ro', verse: '老農 船津伝次平', topic: '船津伝次平', sampleCommentary: '船津伝次平（1832-1898）は、現在の前橋市富士見町原之郷出身の農業指導者。明治三老農の一人とされ、駒場農学校で実習指導にもあたった。農業技術を七五調の「ちょぼくれ節」にして、農民にも覚えやすく伝えた。', category: 'jinbutsu' },
-  { kana: 'わ', slug: 'wa', verse: '和算の大家 関孝和', topic: '関孝和', sampleCommentary: '関孝和（1640頃-1708）は、上野国ゆかりの江戸時代の和算家。関流和算の祖とされ、方程式や行列式など高度な計算を発展させた。筆と紙で複雑な数学に挑んだ。', category: 'jinbutsu' },
+  { kana: 'わ', slug: 'wa', verse: '和算の大家 関孝和', topic: '関孝和', sampleCommentary: '関孝和（生年不詳-1708年）は、江戸時代の日本の数学者である和算家。中国の数学をもとに日本で発展した「和算」を研究し、方程式や行列式、円周率の計算などで大きな成果を上げ、関流和算の祖とされる。同時代の渋川春海（1639-1715年）は、囲碁の家元・安井家に生まれ、水戸光圀らの知遇を得ながら、日本独自の暦「貞享暦」を作った。二人は授時暦を研究したが、個人的な交流を裏付ける確かな史料は確認されていない。関孝和が西洋に先駆けて微分積分を発見したと単純にいうことはできないが、和算独自の方法で高度な数学を発展させた人物である。関連作品として、冲方丁の歴史小説『天地明察』がある。', category: 'jinbutsu' },
 ];
 
 const DEFAULT_COMMENTARY_METADATA = {
@@ -176,6 +176,34 @@ const COMMENTARY_METADATA = {
       },
     ],
   },
+  ke: {
+    commentaryStatus: '前橋市公式資料で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '前橋市公式「前橋市の歴史」',
+        url: 'https://www.city.maebashi.gunma.jp/soshiki/seisaku/kohobrand/gyomu/3/2/3777.html',
+      },
+      {
+        label: '前橋市公式「前橋の歴史を知ろう！」',
+        url: 'https://www.city.maebashi.gunma.jp/soshiki/kyoiku/bunkazaihogo/gyomu/2/2531.html',
+      },
+    ],
+  },
+  ka: {
+    commentaryStatus: '高崎市公式資料で確認（地名由来は伝承）',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '高崎市公式「高崎城址（三の丸外囲の土居と堀）」',
+        url: 'https://www.city.takasaki.gunma.jp/site/cultural-assets/3512.html',
+      },
+      {
+        label: '高崎市公式「高崎城址」',
+        url: 'https://www.city.takasaki.gunma.jp/site/sightseeing/3511.html',
+      },
+    ],
+  },
   shi: {
     commentaryStatus: '群馬県公式資料で確認',
     commentaryVerifiedAt: '2026-07-13',
@@ -220,6 +248,32 @@ const COMMENTARY_METADATA = {
   },
   yo: {
     commentaryStatus: '独自補足・絵札の描写に関する解釈',
+  },
+  wa: {
+    commentaryStatus: '国立国会図書館・国立天文台・国立科学博物館資料で確認（小説は関連作品）',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '国立国会図書館「江戸の数学：関孝和」',
+        url: 'https://www.ndl.go.jp/math/s1/2.html',
+      },
+      {
+        label: '国立天文台「渋川春海と『天地明察』」',
+        url: 'https://eco.mtk.nao.ac.jp/koyomi/exhibition/042/',
+      },
+      {
+        label: '国立科学博物館「渋川春海」',
+        url: 'https://www.kahaku.go.jp/pickup-science/nid00000990.html',
+      },
+      {
+        label: '千葉県立東部図書館「渋川春海と関孝和の交流があったのか知りたい」',
+        url: 'https://crd.ndl.go.jp/reference/entry/reference/show?id=1000188514',
+      },
+      {
+        label: 'KADOKAWA「天地明察」冲方丁',
+        url: 'https://www.kadokawa.co.jp/product/200907000044/',
+      },
+    ],
   },
 };
 
