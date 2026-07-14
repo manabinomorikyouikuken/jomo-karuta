@@ -3,10 +3,16 @@
 @tailwind utilities;
 
 /*
- * The five widest official reading-card scans (あ・い・う・え・お) are
- * 385x414. Use that ratio for the paired detail frame and keep images in
- * their original proportions with object-contain. No crop or distortion.
+ * Official picture-card scans use a 535x670 canvas. Use that ratio for the
+ * paired detail frame so picture and reading cards share the same display
+ * width. Keep every source image in its original proportions with
+ * object-contain; no crop or distortion.
  */
 .karuta-pair-frame {
-  aspect-ratio: 385 / 414;
+  aspect-ratio: 535 / 670;
+}
+
+/* The official あ・い・う・え・お scans include a blank strip on the right. */
+.karuta-reading-centered-scan {
+  transform: translateX(6.75%);
 }

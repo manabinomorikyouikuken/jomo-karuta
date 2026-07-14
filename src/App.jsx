@@ -30,6 +30,7 @@ const QUIZ_MODES = {
 
 const QUIZ_LENGTH = 10;
 const REVIEW_STORAGE_KEY = 'jomo-karuta-review-kanas-v1';
+const READING_CARDS_WITH_RIGHT_SCAN_MARGIN = new Set(['あ', 'い', 'う', 'え', 'お']);
 
 const shuffleItems = (items) => {
   const shuffled = [...items];
@@ -428,7 +429,9 @@ function KarutaImage({ card, variant = 'large' }) {
 
 function YomifudaImage({ card, variant = 'large' }) {
   const sizeClass = variant === 'pair' ? 'karuta-pair-frame' : 'aspect-[4/5]';
-  const imageClass = 'h-full w-full object-contain';
+  const imageClass = `h-full w-full object-contain ${
+    READING_CARDS_WITH_RIGHT_SCAN_MARGIN.has(card.kana) ? 'karuta-reading-centered-scan' : ''
+  }`;
 
   if (card.readingImageSrc) {
     return (
