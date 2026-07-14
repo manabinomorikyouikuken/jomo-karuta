@@ -19,19 +19,19 @@ const OFFICIAL_CARDS = [
   { kana: 'そ', slug: 'so', verse: 'そろいの仕度で 八木節音頭', topic: '八木節', sampleCommentary: '桐生市・足利市を中心に伝わる民謡。夏祭りには揃いの浴衣で踊られる群馬を代表する民俗芸能。', category: 'bunka' },
   { kana: 'た', slug: 'ta', verse: '滝は吹割 片品渓谷', topic: '吹割の滝', sampleCommentary: '沼田市の片品渓谷にある「東洋のナイアガラ」と呼ばれる瀑布。国の天然記念物。', category: 'shizen' },
   { kana: 'ち', slug: 'chi', verse: '力あわせる 百九十万', topic: '群馬県民', sampleCommentary: '群馬県民の団結を讃える札。人口表現は発行時期により改訂されてきた。', category: 'bunka' },
-  { kana: 'つ', slug: 'tsu', verse: 'つる舞う形の 群馬県', topic: '群馬県の形', sampleCommentary: '群馬県の輪郭は鶴が舞う姿に似ている。県のシンボル。', category: 'shizen' },
+  { kana: 'つ', slug: 'tsu', verse: 'つる舞う形の 群馬県', topic: '群馬県の形', sampleCommentary: '古代の上野国は律令期に成立し、現在の群馬県の歴史的な骨格につながる。ただし、現在の県境と「鶴舞う形」という表現がその時代に成立したわけではない。元禄15年（1702）の上野国絵図には鶴の形の原形が見え、明治16年（1883）の『群馬県地誌略』には「其形宛モ舞鶴ノ如シ」と記された。上毛かるたの札によって、現在の表現が広く知られるようになった。', category: 'shizen' },
   { kana: 'て', slug: 'te', verse: '天下の義人 茂左衛門', topic: '茂左衛門', sampleCommentary: '茂左衛門（生没年不詳）は、沼田藩主の重い年貢や労役に苦しむ人々のため、幕府へ直訴したと伝えられる義民。事績を裏づける史料は限られるが、「天下の義人」として語り継がれたところが重要。', category: 'jinbutsu' },
   { kana: 'と', slug: 'to', verse: '利根は 坂東一の川', topic: '利根川', sampleCommentary: '関東平野を貫く大河。「坂東太郎」の異名を持つ群馬発祥の川。', category: 'shizen' },
   { kana: 'な', slug: 'na', verse: '中仙道しのぶ 安中杉並木', topic: '安中杉並木', sampleCommentary: '安中市の旧中山道沿いに残る杉並木。江戸時代の街道の面影をとどめる。', category: 'rekishi' },
   { kana: 'に', slug: 'ni', verse: '日本で最初の 富岡製糸', topic: '富岡製糸場', sampleCommentary: '明治5年(1872)創設の官営模範工場。2014年に世界文化遺産に登録。', category: 'rekishi' },
-  { kana: 'ぬ', slug: 'nu', verse: '沼田城下の 塩原太助', topic: '塩原太助', sampleCommentary: '塩原太助（1743-1816）は、上野国出身で江戸に出た商人。薪炭問屋で働いたあと炭屋として成功し、公益のために私財を投じた。人情噺「塩原多助一代記」で知られるところが面白い。', category: 'jinbutsu' },
+  { kana: 'ぬ', slug: 'nu', verse: '沼田城下の 塩原太助', topic: '塩原太助', sampleCommentary: '塩原太助（1743-1816）は、上野国出身で江戸に出た商人。薪炭問屋で働いたあと炭屋として成功し、公益のために私財を投じた。人情噺「塩原多助一代記」で知られる。', category: 'jinbutsu' },
   { kana: 'ね', slug: 'ne', verse: 'ねぎとこんにゃく 下仁田名産', topic: '下仁田町', sampleCommentary: '甘楽郡下仁田町は下仁田ねぎとこんにゃくの一大産地。', category: 'sangyo' },
   { kana: 'の', slug: 'no', verse: '登る榛名の キャンプ村', topic: '榛名山', sampleCommentary: '高崎市にある成層火山。榛名湖畔はキャンプや観光の名所。上毛三山のひとつ。', category: 'shizen' },
   { kana: 'は', slug: 'ha', verse: '花山公園 つつじの名所', topic: 'つつじが岡公園', sampleCommentary: '館林市のつつじが岡公園は樹齢800年を超えるつつじを誇る日本最大級のつつじの名所。', category: 'meisho' },
   { kana: 'ひ', slug: 'hi', verse: '白衣観音 慈悲の御手', topic: '白衣大観音', sampleCommentary: '高崎市の慈眼院にある高さ41.8mの白衣観音像。1936年建立。高崎のシンボル。', category: 'meisho' },
   { kana: 'ふ', slug: 'fu', verse: '分福茶釜の 茂林寺', topic: '茂林寺', sampleCommentary: '館林市にある曹洞宗の寺院。「分福茶釜」の昔話の舞台として知られる。', category: 'meisho' },
-  { kana: 'へ', slug: 'he', verse: '平和の使徒 新島襄', topic: '新島襄', sampleCommentary: '新島襄（1843-1890）は、安中藩士の家に生まれた教育者。幕末に箱館から海を渡ってアメリカで学び、帰国後に同志社英学校を創立した。当時としては異例の決断で海外に学びに出たところが印象的。', category: 'jinbutsu' },
-  { kana: 'ほ', slug: 'ho', verse: '誇る文豪 田山花袋', topic: '田山花袋', sampleCommentary: '田山花袋（1871-1930）は、群馬県館林出身の小説家。代表作「蒲団」などで自然主義文学を広めた。小説だけでなく紀行文も多く、歩いて見た土地を文章にしたところが面白い。', category: 'jinbutsu' },
+  { kana: 'へ', slug: 'he', verse: '平和の使徒 新島襄', topic: '新島襄', sampleCommentary: '新島襄（1843-1890）は、安中藩士の家に生まれた教育者。幕末に箱館から海を渡ってアメリカで学び、帰国後に同志社英学校を創立した。妻は会津出身の新島八重（旧姓・山本）で、八重の兄が山本覚馬。襄と八重は明治9年（1876年）に結婚した。', category: 'jinbutsu' },
+  { kana: 'ほ', slug: 'ho', verse: '誇る文豪 田山花袋', topic: '田山花袋', sampleCommentary: '田山花袋（1871-1930）は、群馬県館林出身の小説家。代表作「蒲団」などで自然主義文学を広めた。小説だけでなく紀行文も多く、歩いて見た土地を文章にした。', category: 'jinbutsu' },
   { kana: 'ま', slug: 'ma', verse: '繭と生糸は 日本一', topic: '養蚕・生糸業', sampleCommentary: '群馬県は明治以来、養蚕・製糸業で日本一の生産量を誇った。富岡製糸場の世界遺産登録でも注目。', category: 'sangyo' },
   { kana: 'み', slug: 'mi', verse: '水上谷川 スキーと登山', topic: '谷川岳', sampleCommentary: 'みなかみ町の谷川岳（標高1977m）は岩壁登山とスキーで知られる山岳リゾート。', category: 'shizen' },
   { kana: 'む', slug: 'mu', verse: '昔を語る 多胡の古碑', topic: '多胡碑', sampleCommentary: '高崎市吉井町にある奈良時代の石碑。和銅4（711）年ごろに建てられ、多胡郡が置かれたことを記した建郡碑で、那須国造碑・多賀城碑とともに日本三古碑のひとつ。山上碑・金井沢碑と合わせて上野三碑とも呼ばれ、古代東国の文字文化を伝えている。', category: 'rekishi' },
@@ -43,9 +43,9 @@ const OFFICIAL_CARDS = [
   { kana: 'ら', slug: 'ra', verse: '雷と空風 義理人情', topic: '上州気質', sampleCommentary: '群馬を代表する気候・風土と県民気質を詠んだ札。雷と空っ風と義理人情が上州人の象徴。', category: 'bunka' },
   { kana: 'り', slug: 'ri', verse: '理想の電化に 電源群馬', topic: '電源開発', sampleCommentary: '群馬県は矢木沢ダムなど多くのダムと水力発電所を持ち、関東圏の電力を支えてきた。', category: 'sangyo' },
   { kana: 'る', slug: 'ru', verse: 'ループで名高い 清水トンネル', topic: '清水トンネル', sampleCommentary: '上越線の土合駅付近を貫くトンネル。三国山脈の難工事として知られ、ループ線で高低差を克服した。', category: 'rekishi' },
-  { kana: 'れ', slug: 're', verse: '歴史に名高い 新田義貞', topic: '新田義貞', sampleCommentary: '新田義貞（1301-1338）は、上野国新田荘を本拠とした鎌倉末期・南北朝時代の武将。1333年に鎌倉を攻め、鎌倉幕府を滅ぼす大きな役割を果たした。稲村ヶ崎で太刀を海へ投じたという伝説が残るところが面白い。', category: 'jinbutsu' },
-  { kana: 'ろ', slug: 'ro', verse: '老農 船津伝次平', topic: '船津伝次平', sampleCommentary: '船津伝次平（1832-1898）は、現在の前橋市富士見町原之郷出身の農業指導者。明治三老農の一人とされ、駒場農学校で実習指導にもあたった。農業技術を七五調の「ちょぼくれ節」にして、農民にも覚えやすく伝えたところが面白い。', category: 'jinbutsu' },
-  { kana: 'わ', slug: 'wa', verse: '和算の大家 関孝和', topic: '関孝和', sampleCommentary: '関孝和（1640頃-1708）は、上野国ゆかりの江戸時代の和算家。関流和算の祖とされ、方程式や行列式など高度な計算を発展させた。筆と紙で複雑な数学に挑んだところが面白い。', category: 'jinbutsu' },
+  { kana: 'れ', slug: 're', verse: '歴史に名高い 新田義貞', topic: '新田義貞', sampleCommentary: '新田義貞（1301-1338）は、上野国新田荘を本拠とした鎌倉末期・南北朝時代の武将。1333年に鎌倉を攻め、鎌倉幕府を滅ぼす大きな役割を果たした。稲村ヶ崎で太刀を海へ投じたという伝説が残る。', category: 'jinbutsu' },
+  { kana: 'ろ', slug: 'ro', verse: '老農 船津伝次平', topic: '船津伝次平', sampleCommentary: '船津伝次平（1832-1898）は、現在の前橋市富士見町原之郷出身の農業指導者。明治三老農の一人とされ、駒場農学校で実習指導にもあたった。農業技術を七五調の「ちょぼくれ節」にして、農民にも覚えやすく伝えた。', category: 'jinbutsu' },
+  { kana: 'わ', slug: 'wa', verse: '和算の大家 関孝和', topic: '関孝和', sampleCommentary: '関孝和（1640頃-1708）は、上野国ゆかりの江戸時代の和算家。関流和算の祖とされ、方程式や行列式など高度な計算を発展させた。筆と紙で複雑な数学に挑んだ。', category: 'jinbutsu' },
 ];
 
 const DEFAULT_COMMENTARY_METADATA = {
@@ -79,6 +79,38 @@ const COMMENTARY_METADATA = {
       {
         label: '高崎市公式「高崎のここがスゴイ！ランキング」',
         url: 'https://www.city.takasaki.gunma.jp/uploaded/attachment/12654.pdf',
+      },
+    ],
+  },
+  he: {
+    commentaryStatus: '新島八重・同志社の公式資料で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '国立国会図書館「新島八重」',
+        url: 'https://www.ndl.go.jp/portrait/datas/6038/index.html',
+      },
+      {
+        label: '江戸東京博物館「八重の桜」',
+        url: 'https://www.edo-tokyo-museum.or.jp/s-exhibition/yae/',
+      },
+    ],
+  },
+  tsu: {
+    commentaryStatus: '群馬県・群馬大学の歴史資料で確認',
+    commentaryVerifiedAt: '2026-07-14',
+    commentarySources: [
+      {
+        label: '群馬県公式「古代の大国 上野国」',
+        url: 'https://www.pref.gunma.jp/page/5153.html',
+      },
+      {
+        label: '群馬大学「群馬県の形に関する明治期教科書」',
+        url: 'https://www.media.gunma-u.ac.jp/announce/2018/clib/2019021500.html',
+      },
+      {
+        label: '群馬県公式「江戸時代のぐんまのすがた」',
+        url: 'https://www.pref.gunma.jp/uploaded/attachment/131342.pdf',
       },
     ],
   },
