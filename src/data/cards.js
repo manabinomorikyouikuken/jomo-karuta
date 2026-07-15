@@ -1,6 +1,29 @@
 const OFFICIAL_SOURCE_NOTE = '群馬県公式HP掲載「（別紙）絵札・読み札」PDF';
 const assetSrc = (path) => `${import.meta.env.BASE_URL}${path}`;
 
+export const COMMENTARY_VERIFICATION_LEVELS = {
+  official: {
+    label: '公式確認済み',
+    description: '自治体・県・国などの公式資料で確認した内容です。',
+    className: 'border-emerald-300 bg-emerald-50 text-emerald-800',
+  },
+  trusted: {
+    label: '信頼資料で確認',
+    description: '国立機関・大学・専門機関・図書館などの資料で確認した内容です。',
+    className: 'border-sky-300 bg-sky-50 text-sky-800',
+  },
+  traditional: {
+    label: '伝承・諸説あり',
+    description: '伝承・諸説または絵札の解釈を含みます。確定情報と分けて読んでください。',
+    className: 'border-amber-300 bg-amber-50 text-amber-900',
+  },
+  unverified: {
+    label: '未確認',
+    description: '個別の根拠資料をまだ確認していません。学習メモとして掲載しています。',
+    className: 'border-stone-300 bg-stone-100 text-stone-700',
+  },
+};
+
 const OFFICIAL_CARDS = [
   { kana: 'あ', slug: 'a', verse: '浅間のいたずら 鬼の押出し', topic: '浅間山・鬼押出し', sampleCommentary: '吾妻郡嬬恋村にある溶岩台地「鬼押出し」。浅間山は古く「あさま」と読まれていたが、語源は確定しておらず、朝熊・朝雲・煙に関わる語など諸説がある。約1万年前から活動を続け、1108年・1128年・1783年に大規模噴火が起きた。1783年の天明噴火では鬼押出し溶岩が流れ、近年も2004年・2008年・2009年・2015年・2019年に噴火が記録されている。', category: 'shizen' },
   { kana: 'い', slug: 'i', verse: '伊香保温泉 日本の名湯', topic: '伊香保温泉', sampleCommentary: '渋川市の山あいにある古湯。石段街は365段あり、1年365日のにぎわいを願って整えられた。湯の花まんじゅうは温泉まんじゅうの始まりとして知られる。竹久夢二ゆかりの記念館や、明治期にハワイ王国公使ロバート・W・アルウィンの避暑用別邸が置かれたことも印象的。アルウィンは日本人のハワイ移民にも深く関わった人物で、伊香保が国際的な避暑地でもあったことを伝えている。', category: 'meisho' },
@@ -47,6 +70,54 @@ const OFFICIAL_CARDS = [
   { kana: 'ろ', slug: 'ro', verse: '老農 船津伝次平', topic: '船津伝次平', sampleCommentary: '船津伝次平（1832-1898）は、現在の前橋市富士見町原之郷出身の農業指導者。明治三老農の一人とされ、駒場農学校で実習指導にもあたった。農業技術を七五調の「ちょぼくれ節」にして、農民にも覚えやすく伝えた。', category: 'jinbutsu' },
   { kana: 'わ', slug: 'wa', verse: '和算の大家 関孝和', topic: '関孝和', sampleCommentary: '関孝和（生年不詳-1708年）は、江戸時代の日本の数学者である和算家。中国の数学をもとに日本で発展した「和算」を研究し、方程式や行列式、円周率の計算などで大きな成果を上げ、関流和算の祖とされる。同時代の渋川春海（1639-1715年）は、囲碁の家元・安井家に生まれ、水戸光圀らの知遇を得ながら、日本独自の暦「貞享暦」を作った。二人は授時暦を研究したが、個人的な交流を裏付ける確かな史料は確認されていない。関孝和が西洋に先駆けて微分積分を発見したと単純にいうことはできないが、和算独自の方法で高度な数学を発展させた人物である。関連作品として、冲方丁の歴史小説『天地明察』がある。', category: 'jinbutsu' },
 ];
+
+// Every card is assigned explicitly so a new commentary cannot silently look verified.
+const COMMENTARY_VERIFICATION_BY_SLUG = {
+  a: 'traditional',
+  i: 'official',
+  u: 'official',
+  e: 'official',
+  o: 'unverified',
+  ka: 'traditional',
+  ki: 'unverified',
+  ku: 'traditional',
+  ke: 'official',
+  ko: 'unverified',
+  sa: 'unverified',
+  shi: 'official',
+  su: 'unverified',
+  se: 'unverified',
+  so: 'unverified',
+  ta: 'unverified',
+  chi: 'unverified',
+  tsu: 'official',
+  te: 'traditional',
+  to: 'unverified',
+  na: 'unverified',
+  ni: 'unverified',
+  nu: 'unverified',
+  ne: 'unverified',
+  no: 'official',
+  ha: 'unverified',
+  hi: 'unverified',
+  fu: 'unverified',
+  he: 'trusted',
+  ho: 'unverified',
+  ma: 'unverified',
+  mi: 'unverified',
+  mu: 'official',
+  me: 'unverified',
+  mo: 'unverified',
+  ya: 'unverified',
+  yu: 'unverified',
+  yo: 'traditional',
+  ra: 'unverified',
+  ri: 'unverified',
+  ru: 'unverified',
+  re: 'unverified',
+  ro: 'unverified',
+  wa: 'trusted',
+};
 
 const DEFAULT_COMMENTARY_METADATA = {
   commentaryStatus: '独自補足・個別出典確認前',
@@ -289,4 +360,5 @@ export const CARDS = OFFICIAL_CARDS.map((card) => ({
   readingImageAlt: `上毛かるた「${card.kana}」読み札`,
   dataStatus: 'official',
   officialSource: OFFICIAL_SOURCE_NOTE,
+  commentaryVerification: COMMENTARY_VERIFICATION_BY_SLUG[card.slug] || 'unverified',
 }));

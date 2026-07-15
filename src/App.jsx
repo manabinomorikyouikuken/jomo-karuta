@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CARDS } from './data/cards.js';
+import { CARDS, COMMENTARY_VERIFICATION_LEVELS } from './data/cards.js';
 import { CATEGORIES } from './data/categories.js';
 import { LICENSE, getCreditLine } from './data/license.js';
 
@@ -456,6 +456,9 @@ function YomifudaImage({ card, variant = 'large' }) {
 }
 
 function DetailView({ card, onBack }) {
+  const verification = COMMENTARY_VERIFICATION_LEVELS[card.commentaryVerification]
+    || COMMENTARY_VERIFICATION_LEVELS.unverified;
+
   return (
     <div className="mx-auto max-w-2xl">
       <div className="bg-white p-6 sm:p-10">
@@ -482,8 +485,15 @@ function DetailView({ card, onBack }) {
           <p className="mt-2 text-xs text-amber-900">絵札・読み札とは別の独自学習メモです。群馬県が作成した解説文ではありません。</p>
         </section>
         <section className="mt-4 border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
-          <p>
-            <span className="font-bold text-stone-800">解説の確認状態：</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-stone-800">出典状態：</span>
+            <span className={`inline-flex items-center border px-2 py-0.5 text-xs font-bold ${verification.className}`}>
+              {verification.label}
+            </span>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-stone-600">{verification.description}</p>
+          <p className="mt-2">
+            <span className="font-bold text-stone-800">確認メモ：</span>
             {card.commentaryStatus}
           </p>
           {card.commentaryVerifiedAt && (
@@ -508,7 +518,7 @@ function DetailView({ card, onBack }) {
               </ul>
             </div>
           ) : (
-            <p className="mt-2 text-xs text-stone-500">個別の根拠資料は今後追加します。</p>
+            <p className="mt-2 text-xs text-stone-500">個別の根拠資料は未確認です。</p>
           )}
         </section>
       </div>
