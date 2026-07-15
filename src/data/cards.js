@@ -1,5 +1,5 @@
 const OFFICIAL_SOURCE_NOTE = '群馬県公式HP掲載「（別紙）絵札・読み札」PDF';
-const assetSrc = (path) => `${import.meta.env.BASE_URL}${path}`;
+const assetSrc = (path) => `${import.meta.env?.BASE_URL || '/jomo-karuta/'}${path}`;
 
 export const COMMENTARY_VERIFICATION_LEVELS = {
   official: {
