@@ -12,9 +12,26 @@
   aspect-ratio: 535 / 670;
 }
 
-/* The official あ・い・う・え・お scans include a blank strip on the right. */
-.karuta-reading-centered-scan {
-  transform: translateX(6.75%);
+/*
+ * Keep the physical card height identical even when source scans have small
+ * aspect-ratio differences. The wrapper clips only the frame overflow; the
+ * official source files are not edited or distorted.
+ */
+.karuta-card-image {
+  height: 100%;
+  width: auto;
+  max-width: none;
+  flex: 0 0 auto;
+}
+
+.karuta-card-frame {
+  width: 100%;
+  min-width: 0;
+}
+
+/* The official あ・い・う・え・お scans contain a blank strip on the right. */
+.karuta-reading-wide-frame {
+  justify-content: flex-start;
 }
 
 button,

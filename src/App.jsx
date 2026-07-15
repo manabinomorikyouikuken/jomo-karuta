@@ -690,11 +690,11 @@ function KarutaImage({ card, variant = 'large' }) {
     : variant === 'thumb'
       ? 'aspect-[4/5] text-xs'
       : 'aspect-[4/5] text-sm';
-  const imageClass = 'h-full w-full object-contain';
+  const imageClass = 'karuta-card-image';
 
   if (card.imageSrc && !imageError) {
     return (
-      <div className={`flex overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
+      <div className={`karuta-card-frame flex justify-center overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
         <img
           src={card.imageSrc}
           alt={card.imageAlt}
@@ -708,7 +708,7 @@ function KarutaImage({ card, variant = 'large' }) {
   }
 
   return (
-    <div role="img" aria-label={`${card.imageAlt}：${imageError ? '画像を読み込めません' : '公式データ待ち'}`} className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-stone-500 ${sizeClass}`}>
+    <div role="img" aria-label={`${card.imageAlt}：${imageError ? '画像を読み込めません' : '公式データ待ち'}`} className={`karuta-card-frame flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-stone-500 ${sizeClass}`}>
       <span className="font-bold text-stone-700">{imageError ? '画像エラー' : '絵札枠'}</span>
       <span>{imageError ? '画像を読み込めません' : '公式データ待ち'}</span>
     </div>
@@ -720,13 +720,12 @@ function YomifudaImage({ card, variant = 'large' }) {
   useEffect(() => setImageError(false), [card.readingImageSrc]);
 
   const sizeClass = variant === 'pair' ? 'karuta-pair-frame' : 'aspect-[4/5]';
-  const imageClass = `h-full w-full object-contain ${
-    READING_CARDS_WITH_RIGHT_SCAN_MARGIN.has(card.kana) ? 'karuta-reading-centered-scan' : ''
-  }`;
+  const isWideScan = READING_CARDS_WITH_RIGHT_SCAN_MARGIN.has(card.kana);
+  const imageClass = 'karuta-card-image';
 
   if (card.readingImageSrc && !imageError) {
     return (
-      <div className={`flex overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
+      <div className={`karuta-card-frame flex overflow-hidden border border-stone-300 bg-white ${sizeClass} ${isWideScan ? 'karuta-reading-wide-frame' : 'justify-center'}`}>
         <img
           src={card.readingImageSrc}
           alt={card.readingImageAlt}
@@ -740,7 +739,7 @@ function YomifudaImage({ card, variant = 'large' }) {
   }
 
   return (
-    <div role="img" aria-label={`${card.readingImageAlt}：${imageError ? '画像を読み込めません' : '公式データ待ち'}`} className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-sm text-stone-500 ${sizeClass}`}>
+    <div role="img" aria-label={`${card.readingImageAlt}：${imageError ? '画像を読み込めません' : '公式データ待ち'}`} className={`karuta-card-frame flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-sm text-stone-500 ${sizeClass}`}>
       <span className="font-bold text-stone-700">{imageError ? '画像エラー' : '読み札枠'}</span>
       <span>{imageError ? '画像を読み込めません' : '公式データ待ち'}</span>
     </div>
@@ -752,14 +751,14 @@ function DetailView({ card, onBack }) {
     || COMMENTARY_VERIFICATION_LEVELS.unverified;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto w-full min-w-0 max-w-2xl">
       <div className="bg-white p-6 sm:p-10">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <figure>
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <figure className="min-w-0">
             <figcaption className="mb-2 text-sm font-bold text-stone-600">絵札</figcaption>
             <KarutaImage card={card} variant="pair" />
           </figure>
-          <figure>
+          <figure className="min-w-0">
             <figcaption className="mb-2 text-sm font-bold text-stone-600">読み札</figcaption>
             <YomifudaImage card={card} variant="pair" />
           </figure>
