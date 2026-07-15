@@ -134,6 +134,49 @@ async function verifyLocalData() {
   }
 }
 
+async function verifyPwa() {
+  const manifestPath = resolve(ROOT, 'public', 'manifest.webmanifest');
+  const serviceWorkerPath = resolve(ROOT, 'public', 'sw.js');
+  const manifestText = await readText(manifestPath);
+  const serviceWorkerText = await readText(serviceWorkerPath);
+
+  let manifest = null;
+  try {
+    manifest = manifestText ? JSON.parse(manifestText) : null;
+  } catch {
+    manifest = null;
+  }
+
+  if (
+    manifest?.name
+    && manifest.start_url === '/jomo-karuta/'
+    && manifest.scope === '/jomo-karuta/'
+    && manifest.display === 'standalone'
+  ) {
+    pass('PWA manifest', 'name / start_url / scope / standalone を確認');
+  } else {
+    fail('PWA manifest', 'manifest.webmanifest の必須項目が不足または不正');
+  }
+
+  if (
+    serviceWorkerText?.includes("addEventListener('install'")
+    && serviceWorkerText.includes("addEventListener('fetch'")
+    && serviceWorkerText.includes('caches.open')
+  ) {
+    pass('Service Worker', 'install / fetch / Cache Storage を確認');
+  } else {
+    fail('Service Worker', 'sw.js のキャッシュ処理が不足または未配置');
+  }
+
+  const distManifest = await readText(resolve(ROOT, 'dist', 'manifest.webmanifest'));
+  const distServiceWorker = await readText(resolve(ROOT, 'dist', 'sw.js'));
+  if (distManifest && distServiceWorker) {
+    pass('PWAビルド成果物', 'dist/ にmanifestとService Workerが出力されています');
+  } else {
+    fail('PWAビルド成果物', 'dist/ にmanifestまたはService Workerがありません');
+  }
+}
+
 function verifyLicense() {
   const dates = [...LICENSE.usagePeriod.matchAll(/(\d{4})年(\d+)月(\d+)日/g)]
     .map((match) => `${match[1]}-${String(match[2]).padStart(2, '0')}-${String(match[3]).padStart(2, '0')}`);
@@ -216,6 +259,7 @@ async function verifyPublicBuild() {
 }
 
 await verifyLocalData();
+await verifyPwa();
 verifyLicense();
 await verifyPublicBuild();
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CARDS, COMMENTARY_VERIFICATION_LEVELS } from './data/cards.js';
 import { CATEGORIES } from './data/categories.js';
 import { LICENSE, getCreditLine } from './data/license.js';
@@ -30,6 +30,8 @@ const QUIZ_MODES = {
 
 const QUIZ_LENGTH = 10;
 const REVIEW_STORAGE_KEY = 'jomo-karuta-review-kanas-v1';
+const LEARNING_STORAGE_KEY = 'jomo-karuta-learning-v1';
+const REVIEW_INTERVALS_DAYS = [1, 3, 7, 14, 30];
 const READING_CARDS_WITH_RIGHT_SCAN_MARGIN = new Set(['あ', 'い', 'う', 'え', 'お']);
 
 const shuffleItems = (items) => {
@@ -76,6 +78,212 @@ const writeReviewKanas = (kanas) => {
   }
 };
 
+const emptyLearningRecord = () => ({ cards: {}, history: [], sessions: [] });
+
+const readLearningRecord = () => {
+  if (typeof window === 'undefined') return emptyLearningRecord();
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(LEARNING_STORAGE_KEY) || '{}');
+    return {
+      cards: stored?.cards && typeof stored.cards === 'object' ? stored.cards : {},
+      history: Array.isArray(stored?.history) ? stored.history.slice(-200) : [],
+      sessions: Array.isArray(stored?.sessions) ? stored.sessions.slice(-30) : [],
+    };
+  } catch {
+    return emptyLearningRecord();
+  }
+};
+
+const writeLearningRecord = (record) => {
+  try {
+    window.localStorage.setItem(LEARNING_STORAGE_KEY, JSON.stringify(record));
+  } catch {
+    // Private browsing or storage restrictions should not block learning.
+  }
+};
+
+const getTokyoDateKey = (date = new Date()) => new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Asia/Tokyo',
+}).format(date);
+
+const addDaysToDateKey = (dateKey, days) => {
+  const date = new Date(`${dateKey}T00:00:00+09:00`);
+  date.setDate(date.getDate() + days);
+  return getTokyoDateKey(date);
+};
+
+const formatDateKey = (dateKey) => dateKey ? dateKey.replaceAll('-', '/') : '未設定';
+
+const getCardLearning = (record, card) => record.cards[card.slug] || {
+  attempts: 0,
+  correct: 0,
+  incorrect: 0,
+  streak: 0,
+  bestStreak: 0,
+  lastAnsweredAt: null,
+  nextReviewAt: null,
+};
+
+const getAccuracy = (stats) => stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : null;
+
+const formatDateTime = (iso) => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '日時不明';
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date);
+};
+
+const getModeLabel = (mode) => QUIZ_MODES[mode]?.label || mode || '学習';
+
+function LearningStatsView({ cards, learningRecord, onSelect }) {
+  const today = getTokyoDateKey();
+  const attemptedCards = cards.filter((card) => getCardLearning(learningRecord, card).attempts > 0);
+  const totals = attemptedCards.reduce((summary, card) => {
+    const stats = getCardLearning(learningRecord, card);
+    return {
+      attempts: summary.attempts + stats.attempts,
+      correct: summary.correct + stats.correct,
+    };
+  }, { attempts: 0, correct: 0 });
+  const dueCards = attemptedCards.filter((card) => {
+    const nextReviewAt = getCardLearning(learningRecord, card).nextReviewAt;
+    return nextReviewAt && nextReviewAt <= today;
+  });
+  const weakCards = [...attemptedCards]
+    .sort((left, right) => {
+      const leftStats = getCardLearning(learningRecord, left);
+      const rightStats = getCardLearning(learningRecord, right);
+      const leftDue = leftStats.nextReviewAt && leftStats.nextReviewAt <= today ? 0 : 1;
+      const rightDue = rightStats.nextReviewAt && rightStats.nextReviewAt <= today ? 0 : 1;
+      if (leftDue !== rightDue) return leftDue - rightDue;
+      return (getAccuracy(leftStats) ?? 101) - (getAccuracy(rightStats) ?? 101);
+    })
+    .slice(0, 8);
+  const categoryRows = Object.entries(CATEGORIES).map(([key, category]) => {
+    const categoryCards = cards.filter((card) => card.category === key);
+    const categoryTotals = categoryCards.reduce((summary, card) => {
+      const stats = getCardLearning(learningRecord, card);
+      return {
+        attempts: summary.attempts + stats.attempts,
+        correct: summary.correct + stats.correct,
+      };
+    }, { attempts: 0, correct: 0 });
+    return { key, label: category.label, ...categoryTotals };
+  });
+  const recentHistory = [...learningRecord.history].reverse().slice(0, 10);
+  const recentSessions = [...learningRecord.sessions].reverse().slice(0, 5);
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-6">
+        <h2 className="text-2xl">学習記録</h2>
+        <p className="mt-2 text-sm leading-relaxed text-stone-600">
+          この端末のブラウザ内に、クイズの結果と復習の目安を保存しています。外部には送信しません。
+        </p>
+      </div>
+
+      <section aria-label="学習の概要" className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          ['解答数', `${totals.attempts}問`],
+          ['正答率', totals.attempts > 0 ? `${Math.round((totals.correct / totals.attempts) * 100)}%` : '未記録'],
+          ['学習した札', `${attemptedCards.length} / ${cards.length}枚`],
+          ['復習時期', `${dueCards.length}枚`],
+        ].map(([label, value]) => (
+          <div key={label} className="border border-stone-300 bg-white p-4">
+            <div className="text-xs text-stone-500">{label}</div>
+            <div className="mt-2 text-xl font-bold text-stone-900">{value}</div>
+          </div>
+        ))}
+      </section>
+
+      <section className="mb-6 border border-stone-300 bg-white p-5">
+        <h3 className="mb-3 text-lg font-bold">苦手な札・復習が近い札</h3>
+        {weakCards.length === 0 ? (
+          <p className="text-sm leading-relaxed text-stone-600">まだ学習記録がありません。クイズを解くと、札ごとの正答率と復習日がここに表示されます。</p>
+        ) : (
+          <div className="grid gap-2">
+            {weakCards.map((card) => {
+              const stats = getCardLearning(learningRecord, card);
+              const due = stats.nextReviewAt && stats.nextReviewAt <= today;
+              return (
+                <button
+                  key={card.slug}
+                  type="button"
+                  onClick={() => onSelect(card)}
+                  className="flex min-w-0 items-center justify-between gap-3 border border-stone-200 bg-stone-50 p-3 text-left hover:border-red-700"
+                >
+                  <span className="min-w-0">
+                    <span className="mr-3 text-2xl text-red-700">{card.kana}</span>
+                    <span className="text-sm">{card.verse}</span>
+                  </span>
+                  <span className="shrink-0 text-right text-xs text-stone-600">
+                    <span className="block font-bold text-stone-900">正答率 {getAccuracy(stats)}%</span>
+                    <span className={due ? 'text-red-700' : ''}>{due ? '復習時期です' : `次回 ${formatDateKey(stats.nextReviewAt)}`}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="mb-6 border border-stone-300 bg-white p-5">
+        <h3 className="mb-3 text-lg font-bold">カテゴリ別成績</h3>
+        <div className="grid gap-2">
+          {categoryRows.map((row) => (
+            <div key={row.key} className="grid grid-cols-[5rem_1fr_auto] items-center gap-3 border-b border-stone-100 py-2 text-sm last:border-b-0">
+              <span className="font-bold">{row.label}</span>
+              <span className="text-stone-600">{row.attempts > 0 ? `${row.correct} / ${row.attempts}問` : '未記録'}</span>
+              <span className="font-bold text-stone-900">{row.attempts > 0 ? `${Math.round((row.correct / row.attempts) * 100)}%` : '—'}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-6 border border-stone-300 bg-white p-5">
+        <h3 className="mb-3 text-lg font-bold">学習履歴</h3>
+        {recentSessions.length === 0 && recentHistory.length === 0 ? (
+          <p className="text-sm text-stone-600">学習履歴はまだありません。</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="mb-2 text-sm font-bold text-stone-700">最近のクイズ</h4>
+              {recentSessions.length === 0 ? (
+                <p className="text-sm text-stone-500">未記録</p>
+              ) : (
+                <ul className="space-y-2 text-sm text-stone-600">
+                  {recentSessions.map((session) => (
+                    <li key={session.id} className="border-b border-stone-100 pb-2">
+                      {formatDateTime(session.at)}：{getModeLabel(session.mode)} {session.correct} / {session.total}問
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <h4 className="mb-2 text-sm font-bold text-stone-700">最近の解答</h4>
+              {recentHistory.length === 0 ? (
+                <p className="text-sm text-stone-500">未記録</p>
+              ) : (
+                <ul className="space-y-2 text-sm text-stone-600">
+                  {recentHistory.map((entry) => (
+                    <li key={entry.id} className="border-b border-stone-100 pb-2">
+                      {formatDateTime(entry.at)}：<span className={entry.correct ? 'text-emerald-700' : 'text-red-700'}>{entry.correct ? '正解' : '不正解'}</span> {entry.kana}（{getModeLabel(entry.mode)}）
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
 export default function App() {
   const [view, setView] = useState('list');
   const [selectedCard, setSelectedCard] = useState(null);
@@ -91,7 +299,9 @@ export default function App() {
   const [maxCombo, setMaxCombo] = useState(0);
   const [mistakes, setMistakes] = useState([]);
   const [quizDeck, setQuizDeck] = useState([]);
+  const [quizStartedAt, setQuizStartedAt] = useState(null);
   const [reviewKanas, setReviewKanas] = useState(readReviewKanas);
+  const [learningRecord, setLearningRecord] = useState(readLearningRecord);
 
   const [flashIndex, setFlashIndex] = useState(0);
   const [flashOrder, setFlashOrder] = useState([]);
@@ -129,6 +339,7 @@ export default function App() {
     setCombo(0);
     setMaxCombo(0);
     setMistakes([]);
+    setQuizStartedAt(new Date().toISOString());
     setView('quiz');
   };
 
@@ -159,12 +370,71 @@ export default function App() {
     });
   };
 
+  const recordLearningAnswer = (card, correct, mode) => {
+    setLearningRecord((current) => {
+      const previous = getCardLearning(current, card);
+      const nextStreak = correct ? previous.streak + 1 : 0;
+      const intervalDays = correct
+        ? REVIEW_INTERVALS_DAYS[Math.min(nextStreak - 1, REVIEW_INTERVALS_DAYS.length - 1)]
+        : REVIEW_INTERVALS_DAYS[0];
+      const now = new Date().toISOString();
+      const nextCard = {
+        ...previous,
+        attempts: previous.attempts + 1,
+        correct: previous.correct + (correct ? 1 : 0),
+        incorrect: previous.incorrect + (correct ? 0 : 1),
+        streak: nextStreak,
+        bestStreak: Math.max(previous.bestStreak, nextStreak),
+        lastAnsweredAt: now,
+        nextReviewAt: addDaysToDateKey(getTokyoDateKey(), intervalDays),
+      };
+      const nextRecord = {
+        ...current,
+        cards: { ...current.cards, [card.slug]: nextCard },
+        history: [
+          ...current.history,
+          { id: `${now}-${card.slug}`, at: now, slug: card.slug, kana: card.kana, correct, mode },
+        ].slice(-200),
+      };
+      writeLearningRecord(nextRecord);
+      return nextRecord;
+    });
+  };
+
+  const recordLearningSession = (score, mode, startedAt) => {
+    setLearningRecord((current) => {
+      const completedAt = new Date().toISOString();
+      const durationSeconds = startedAt
+        ? Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 1000))
+        : null;
+      const nextRecord = {
+        ...current,
+        sessions: [
+          ...current.sessions,
+          {
+            id: completedAt,
+            at: completedAt,
+            correct: score.correct,
+            total: score.total,
+            mode,
+            difficulty,
+            durationSeconds,
+          },
+        ].slice(-30),
+      };
+      writeLearningRecord(nextRecord);
+      return nextRecord;
+    });
+  };
+
   const answerQuiz = (kana) => {
+    if (!quizCard || quizResult !== null) return;
     const correct = kana === quizCard.kana;
     const newCombo = correct ? combo + 1 : 0;
     setCombo(newCombo);
     setMaxCombo((current) => Math.max(current, newCombo));
     setQuizResult(correct);
+    recordLearningAnswer(quizCard, correct, quizMode);
     if (!correct) {
       const chosen = CARDS.find((card) => card.kana === kana);
       rememberReviewCard(quizCard);
@@ -178,10 +448,14 @@ export default function App() {
         },
       ]);
     }
-    setQuizScore((score) => ({
-      correct: score.correct + (correct ? 1 : 0),
-      total: score.total + 1,
-    }));
+    const nextScore = {
+      correct: quizScore.correct + (correct ? 1 : 0),
+      total: quizScore.total + 1,
+    };
+    setQuizScore(nextScore);
+    if (nextScore.total >= QUIZ_LENGTH) {
+      recordLearningSession(nextScore, quizMode, quizStartedAt);
+    }
   };
 
   const startFlashSession = (order, title, kind) => {
@@ -239,6 +513,7 @@ export default function App() {
             <NavButton active={view === 'flash'} onClick={() => startFlash()}>フラッシュ</NavButton>
             <NavButton active={view === 'quiz' || view === 'quiz-select'} onClick={() => setView('quiz-select')}>クイズ</NavButton>
             <NavButton active={view === 'review'} onClick={() => setView('review')}>復習</NavButton>
+            <NavButton active={view === 'stats'} onClick={() => setView('stats')}>学習記録</NavButton>
           </nav>
         </div>
       </header>
@@ -307,6 +582,9 @@ export default function App() {
         {view === 'review' && (
           <ReviewView cards={reviewCards} onSelect={openCard} onRemove={removeReviewCard} />
         )}
+        {view === 'stats' && (
+          <LearningStatsView cards={CARDS} learningRecord={learningRecord} onSelect={openCard} />
+        )}
       </main>
 
       <footer className="mt-16 border-t border-stone-300 bg-stone-100">
@@ -319,7 +597,9 @@ export default function App() {
 function NavButton({ active, onClick, children }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={`border px-3 py-1.5 ${
         active ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
       }`}
@@ -354,6 +634,7 @@ function ListView({ cards, filter, setFilter, onSelect, onStartDaily }) {
     <div>
       <div className="mb-4 flex flex-wrap gap-2">
         <button
+          type="button"
           onClick={onStartDaily}
           className="border border-red-700 bg-red-700 px-3 py-1.5 text-sm text-white hover:bg-red-800"
         >
@@ -368,6 +649,7 @@ function ListView({ cards, filter, setFilter, onSelect, onStartDaily }) {
         {cards.map((card) => (
           <button
             key={card.kana}
+            type="button"
             onClick={() => onSelect(card)}
             className="group bg-white p-4 text-left transition-all hover:shadow-md"
           >
@@ -387,7 +669,9 @@ function ListView({ cards, filter, setFilter, onSelect, onStartDaily }) {
 function FilterButton({ label, active, onClick }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={`border px-3 py-1.5 text-sm ${
         active ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
       }`}
@@ -398,6 +682,9 @@ function FilterButton({ label, active, onClick }) {
 }
 
 function KarutaImage({ card, variant = 'large' }) {
+  const [imageError, setImageError] = useState(false);
+  useEffect(() => setImageError(false), [card.imageSrc]);
+
   const sizeClass = variant === 'pair'
     ? 'karuta-pair-frame text-sm'
     : variant === 'thumb'
@@ -405,7 +692,7 @@ function KarutaImage({ card, variant = 'large' }) {
       : 'aspect-[4/5] text-sm';
   const imageClass = 'h-full w-full object-contain';
 
-  if (card.imageSrc) {
+  if (card.imageSrc && !imageError) {
     return (
       <div className={`flex overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
         <img
@@ -413,6 +700,7 @@ function KarutaImage({ card, variant = 'large' }) {
           alt={card.imageAlt}
           loading="lazy"
           decoding="async"
+          onError={() => setImageError(true)}
           className={imageClass}
         />
       </div>
@@ -420,20 +708,23 @@ function KarutaImage({ card, variant = 'large' }) {
   }
 
   return (
-    <div className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-stone-500 ${sizeClass}`}>
-      <span className="font-bold text-stone-700">絵札枠</span>
-      <span>公式データ待ち</span>
+    <div role="img" aria-label={`${card.imageAlt}：${imageError ? '画像を読み込めません' : '公式データ待ち'}`} className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-stone-500 ${sizeClass}`}>
+      <span className="font-bold text-stone-700">{imageError ? '画像エラー' : '絵札枠'}</span>
+      <span>{imageError ? '画像を読み込めません' : '公式データ待ち'}</span>
     </div>
   );
 }
 
 function YomifudaImage({ card, variant = 'large' }) {
+  const [imageError, setImageError] = useState(false);
+  useEffect(() => setImageError(false), [card.readingImageSrc]);
+
   const sizeClass = variant === 'pair' ? 'karuta-pair-frame' : 'aspect-[4/5]';
   const imageClass = `h-full w-full object-contain ${
     READING_CARDS_WITH_RIGHT_SCAN_MARGIN.has(card.kana) ? 'karuta-reading-centered-scan' : ''
   }`;
 
-  if (card.readingImageSrc) {
+  if (card.readingImageSrc && !imageError) {
     return (
       <div className={`flex overflow-hidden border border-stone-300 bg-white ${sizeClass}`}>
         <img
@@ -441,6 +732,7 @@ function YomifudaImage({ card, variant = 'large' }) {
           alt={card.readingImageAlt}
           loading="lazy"
           decoding="async"
+          onError={() => setImageError(true)}
           className={imageClass}
         />
       </div>
@@ -448,9 +740,9 @@ function YomifudaImage({ card, variant = 'large' }) {
   }
 
   return (
-    <div className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-sm text-stone-500 ${sizeClass}`}>
-      <span className="font-bold text-stone-700">読み札枠</span>
-      <span>公式データ待ち</span>
+    <div role="img" aria-label={`${card.readingImageAlt}：${imageError ? '画像を読み込めません' : '公式データ待ち'}`} className={`flex flex-col items-center justify-center border border-dashed border-stone-400 bg-stone-100 p-3 text-center text-sm text-stone-500 ${sizeClass}`}>
+      <span className="font-bold text-stone-700">{imageError ? '画像エラー' : '読み札枠'}</span>
+      <span>{imageError ? '画像を読み込めません' : '公式データ待ち'}</span>
     </div>
   );
 }
@@ -522,7 +814,7 @@ function DetailView({ card, onBack }) {
           )}
         </section>
       </div>
-      <button onClick={onBack} className="mt-4 w-full border border-stone-300 bg-white py-4 text-sm text-stone-700 hover:bg-stone-50">
+      <button type="button" onClick={onBack} className="mt-4 w-full border border-stone-300 bg-white py-4 text-sm text-stone-700 hover:bg-stone-50">
         ← 一覧に戻る
       </button>
     </div>
@@ -535,12 +827,22 @@ function FlashView({ card, index, total, title, onNext, onExit }) {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between text-sm text-stone-500">
-        <button onClick={onExit}>← やめる</button>
+        <button type="button" onClick={onExit}>← やめる</button>
         <span>{title}　{index + 1} / {total}</span>
       </div>
 
       <div
         onClick={!revealed ? () => setRevealed(true) : undefined}
+        role="button"
+        tabIndex={revealed ? -1 : 0}
+        aria-expanded={revealed}
+        aria-label={revealed ? '読み札を表示中' : '絵札を見て読み札を表示'}
+        onKeyDown={(event) => {
+          if (!revealed && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            setRevealed(true);
+          }
+        }}
         className={`select-none rounded-sm border-2 bg-white p-5 transition-all ${
           !revealed ? 'cursor-pointer border-amber-400 hover:border-amber-600' : 'border-stone-300'
         }`}
@@ -578,8 +880,8 @@ function FlashView({ card, index, total, title, onNext, onExit }) {
       </div>
 
       <div className={`mt-6 flex gap-4 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
-        <button onClick={onExit} className="flex-1 border border-stone-300 bg-white py-3 text-sm">やめる</button>
-        <button onClick={onNext} className="flex-1 bg-stone-900 py-3 text-stone-50">次のカード →</button>
+        <button type="button" onClick={onExit} className="flex-1 border border-stone-300 bg-white py-3 text-sm">やめる</button>
+        <button type="button" onClick={onNext} className="flex-1 bg-stone-900 py-3 text-stone-50">次のカード →</button>
       </div>
     </div>
   );
@@ -595,7 +897,9 @@ function QuizSelect({ difficulty, setDifficulty, quizMode, setQuizMode, onStart 
           {Object.entries(QUIZ_MODES).map(([key, { label, desc }]) => (
             <button
               key={key}
+              type="button"
               onClick={() => setQuizMode(key)}
+              aria-pressed={quizMode === key}
               className={`border p-4 text-left ${
                 quizMode === key ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
               }`}
@@ -613,7 +917,9 @@ function QuizSelect({ difficulty, setDifficulty, quizMode, setQuizMode, onStart 
         {Object.entries(DIFFICULTY).map(([key, { label, desc }]) => (
           <button
             key={key}
+            type="button"
             onClick={() => setDifficulty(key)}
+            aria-pressed={difficulty === key}
             className={`border p-4 text-left ${
               difficulty === key ? 'border-stone-900 bg-stone-900 text-stone-50' : 'border-stone-300 bg-white hover:border-stone-500'
             }`}
@@ -624,7 +930,7 @@ function QuizSelect({ difficulty, setDifficulty, quizMode, setQuizMode, onStart 
         ))}
       </div>
       </section>
-      <button onClick={() => onStart(difficulty)} className="w-full bg-red-700 py-3 text-lg text-stone-50">
+      <button type="button" onClick={() => onStart(difficulty)} className="w-full bg-red-700 py-3 text-lg text-stone-50">
         {QUIZ_LENGTH}問スタート
       </button>
     </div>
@@ -640,7 +946,7 @@ function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, q
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between text-sm">
-        <button onClick={onExit} className="text-stone-600 hover:text-stone-900">← やめる</button>
+        <button type="button" onClick={onExit} className="text-stone-600 hover:text-stone-900">← やめる</button>
         <div className="flex gap-4 text-stone-600">
           {combo >= 3 && <span className="font-bold text-amber-600">{combo}連続</span>}
           <span>{score.total} / {quizLength}問</span>
@@ -669,6 +975,7 @@ function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, q
         {choices.map((choice) => (
           <button
             key={choice.kana}
+            type="button"
             onClick={() => result === null && onAnswer(choice.kana)}
             disabled={result !== null}
             className={`border py-6 transition-all ${isImageMode ? 'px-4 text-left text-base leading-relaxed' : 'text-4xl'} ${
@@ -688,14 +995,16 @@ function QuizView({ card, choices, result, score, combo, maxCombo, quizLength, q
         <div className="mt-6 text-center">
           {combo >= 5 && <p className="mb-1 text-lg text-amber-500">{combo}連続コンボ</p>}
           {combo === 3 && <p className="mb-1 text-lg text-amber-500">3連続</p>}
-          <p className={`mb-2 text-xl ${result ? 'text-emerald-700' : 'text-red-700'}`}>
-            {result ? '正解！' : `不正解　正解は${correctLabel}`}
-          </p>
-          <p className="mb-4 text-sm text-stone-500">{card.verse}（{card.topic}）</p>
+          <div aria-live="polite">
+            <p className={`mb-2 text-xl ${result ? 'text-emerald-700' : 'text-red-700'}`}>
+              {result ? '正解！' : `不正解　正解は${correctLabel}`}
+            </p>
+            <p className="mb-4 text-sm text-stone-500">{card.verse}（{card.topic}）</p>
+          </div>
           {isFinished ? (
-            <button onClick={onFinish} className="bg-red-700 px-8 py-2 text-stone-50">結果を見る</button>
+            <button type="button" onClick={onFinish} className="bg-red-700 px-8 py-2 text-stone-50">結果を見る</button>
           ) : (
-            <button onClick={onNext} className="bg-stone-900 px-8 py-2 text-stone-50">次の問題</button>
+            <button type="button" onClick={onNext} className="bg-stone-900 px-8 py-2 text-stone-50">次の問題</button>
           )}
         </div>
       )}
@@ -734,6 +1043,7 @@ function QuizResult({ score, maxCombo, mistakes, onRetry, onHome, onReview }) {
             {reviewCards.map((card) => (
               <button
                 key={card.kana}
+                type="button"
                 onClick={() => onReview(card)}
                 className="flex items-center justify-between border border-stone-200 bg-stone-50 px-3 py-2 text-left text-sm hover:border-red-700"
               >
@@ -748,8 +1058,8 @@ function QuizResult({ score, maxCombo, mistakes, onRetry, onHome, onReview }) {
         )}
       </section>
       <div className="flex gap-4">
-        <button onClick={onHome} className="flex-1 border border-stone-300 bg-white py-3">一覧に戻る</button>
-        <button onClick={onRetry} className="flex-1 bg-red-700 py-3 text-stone-50">もう一度</button>
+        <button type="button" onClick={onHome} className="flex-1 border border-stone-300 bg-white py-3">一覧に戻る</button>
+        <button type="button" onClick={onRetry} className="flex-1 bg-red-700 py-3 text-stone-50">もう一度</button>
       </div>
     </div>
   );
@@ -777,6 +1087,7 @@ function ReviewView({ cards, onSelect, onRemove }) {
             {cards.map((card) => (
               <div key={card.kana} className="flex items-center gap-2 border border-stone-200 bg-stone-50 p-2">
                 <button
+                  type="button"
                   onClick={() => onSelect(card)}
                   className="flex min-w-0 flex-1 items-center gap-3 px-2 py-1 text-left hover:text-red-800"
                 >
@@ -784,6 +1095,7 @@ function ReviewView({ cards, onSelect, onRemove }) {
                   <span className="truncate text-sm">{card.verse}</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => onRemove(card)}
                   className="shrink-0 border border-stone-300 bg-white px-2 py-1 text-xs text-stone-600 hover:border-red-700 hover:text-red-800"
                 >

@@ -1,0 +1,11 @@
+{
+  "name": "上毛かるた 学習Webアプリ",
+  "short_name": "上毛かるた",
+  "description": "群馬県の公式データを使って学ぶ、上毛かるた学習Webアプリ。",
+  "start_url": "/jomo-karuta/",
+  "scope": "/jomo-karuta/",
+  "display": "standalone",
+  "background_color": "#fafaf9",
+  "theme_color": "#991b1b",
+  "lang": "ja"
+}

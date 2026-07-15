@@ -16,3 +16,28 @@
 .karuta-reading-centered-scan {
   transform: translateX(6.75%);
 }
+
+button,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+button {
+  min-height: 44px;
+}
+
+:focus-visible {
+  outline: 3px solid #b91c1c;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
