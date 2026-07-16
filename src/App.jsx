@@ -772,7 +772,25 @@ function DetailView({ card, onBack }) {
         <h2 className="mb-2 text-xl font-bold">{card.topic}</h2>
         <section className="border border-amber-200 bg-amber-50 p-4">
           <h3 className="mb-2 text-sm font-bold text-amber-900">まなびメモ（独自補足）</h3>
-          <p className="leading-relaxed text-stone-700">{card.sampleCommentary}</p>
+              {card.commentarySections.length > 0 ? (
+                <div>
+                  {card.commentarySummary && (
+                    <p className="border-b border-amber-200 pb-4 leading-relaxed text-stone-800">
+                      {card.commentarySummary}
+                    </p>
+                  )}
+                  <div className="mt-4 space-y-4">
+                    {card.commentarySections.map((section) => (
+                      <div key={section.title}>
+                        <h4 className="text-sm font-bold text-stone-900">{section.title}</h4>
+                        <p className="mt-1 leading-relaxed text-stone-700">{section.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="leading-relaxed text-stone-700">{card.sampleCommentary}</p>
+              )}
           <p className="mt-2 text-xs text-amber-900">絵札・読み札とは別の独自学習メモです。群馬県が作成した解説文ではありません。</p>
         </section>
         <section className="mt-4 border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
