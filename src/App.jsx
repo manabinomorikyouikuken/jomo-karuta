@@ -790,6 +790,26 @@ function DetailView({ card, onBack }) {
           {card.commentaryVerifiedAt && (
             <p className="mt-1 text-xs text-stone-500">最終確認日：{card.commentaryVerifiedAt}</p>
           )}
+          {card.commentaryPeople.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs font-bold text-stone-700">関連人物</p>
+              <ul className="mt-1 space-y-1">
+                {card.commentaryPeople.map((person) => (
+                  <li key={person.url}>
+                    <a
+                      href={person.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-red-800 underline underline-offset-2 hover:text-red-950"
+                    >
+                      {person.name}
+                    </a>
+                    <span className="ml-1 text-stone-600">：{person.role}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {card.commentarySources.length > 0 ? (
             <div className="mt-2">
               <p className="text-xs font-bold text-stone-700">根拠資料</p>
