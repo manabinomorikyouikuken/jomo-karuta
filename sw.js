@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jomo-karuta-v1';
+const CACHE_NAME = 'jomo-karuta-v2';
 const APP_SCOPE = self.registration.scope;
 const APP_SHELL = new URL('./', APP_SCOPE).href;
 const MANIFEST_URL = new URL('manifest.webmanifest', APP_SCOPE).href;
