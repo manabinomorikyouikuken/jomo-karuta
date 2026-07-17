@@ -8,8 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "preview:pages": "vite preview --host 127.0.0.1 --port 4180",
-    "verify:release": "npm run build && node scripts/verify-release.mjs",
-    "verify:license": "node scripts/verify-release.mjs --skip-public"
+    "audit:commentary": "node scripts/audit-commentary.mjs",
+    "verify:release": "npm run audit:commentary && npm run build && node scripts/verify-release.mjs",
+    "verify:license": "npm run audit:commentary && node scripts/verify-release.mjs --skip-public"
   },
   "dependencies": {
     "react": "^18.3.1",

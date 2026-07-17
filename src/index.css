@@ -48,6 +48,14 @@ button {
   outline-offset: 3px;
 }
 
+.commentary-details > summary {
+  min-height: 44px;
+}
+
+.commentary-details[open] > summary {
+  margin-bottom: 0.25rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

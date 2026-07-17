@@ -33,6 +33,7 @@ const REVIEW_STORAGE_KEY = 'jomo-karuta-review-kanas-v1';
 const LEARNING_STORAGE_KEY = 'jomo-karuta-learning-v1';
 const REVIEW_INTERVALS_DAYS = [1, 3, 7, 14, 30];
 const READING_CARDS_WITH_RIGHT_SCAN_MARGIN = new Set(['あ', 'い', 'う', 'え', 'お']);
+const COMMENTARY_PREVIEW_SECTION_COUNT = 3;
 
 const shuffleItems = (items) => {
   const shuffled = [...items];
@@ -746,9 +747,20 @@ function YomifudaImage({ card, variant = 'large' }) {
   );
 }
 
+function CommentarySection({ section }) {
+  return (
+    <div>
+      <h4 className="text-sm font-bold text-stone-900">{section.title}</h4>
+      <p className="mt-1 leading-relaxed text-stone-700">{section.body}</p>
+    </div>
+  );
+}
+
 function DetailView({ card, onBack }) {
   const verification = COMMENTARY_VERIFICATION_LEVELS[card.commentaryVerification]
     || COMMENTARY_VERIFICATION_LEVELS.unverified;
+  const previewSections = card.commentarySections.slice(0, COMMENTARY_PREVIEW_SECTION_COUNT);
+  const additionalSections = card.commentarySections.slice(COMMENTARY_PREVIEW_SECTION_COUNT);
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-2xl">
@@ -772,25 +784,34 @@ function DetailView({ card, onBack }) {
         <h2 className="mb-2 text-xl font-bold">{card.topic}</h2>
         <section className="border border-amber-200 bg-amber-50 p-4">
           <h3 className="mb-2 text-sm font-bold text-amber-900">まなびメモ（独自補足）</h3>
-              {card.commentarySections.length > 0 ? (
-                <div>
-                  {card.commentarySummary && (
-                    <p className="border-b border-amber-200 pb-4 leading-relaxed text-stone-800">
-                      {card.commentarySummary}
-                    </p>
-                  )}
-                  <div className="mt-4 space-y-4">
-                    {card.commentarySections.map((section) => (
-                      <div key={section.title}>
-                        <h4 className="text-sm font-bold text-stone-900">{section.title}</h4>
-                        <p className="mt-1 leading-relaxed text-stone-700">{section.body}</p>
-                      </div>
+          {card.commentarySections.length > 0 ? (
+            <div>
+              {card.commentarySummary && (
+                <p className="border-b border-amber-200 pb-4 leading-relaxed text-stone-800">
+                  {card.commentarySummary}
+                </p>
+              )}
+              <div className="mt-4 space-y-4">
+                {previewSections.map((section) => (
+                  <CommentarySection key={section.title} section={section} />
+                ))}
+              </div>
+              {additionalSections.length > 0 && (
+                <details key={card.slug} className="commentary-details mt-5 border-t border-amber-200 pt-2">
+                  <summary className="cursor-pointer py-3 text-sm font-bold text-red-800">
+                    もっと詳しく読む（残り{additionalSections.length}項目）
+                  </summary>
+                  <div className="space-y-4 pb-2 pt-2">
+                    {additionalSections.map((section) => (
+                      <CommentarySection key={section.title} section={section} />
                     ))}
                   </div>
-                </div>
-              ) : (
-                <p className="leading-relaxed text-stone-700">{card.sampleCommentary}</p>
+                </details>
               )}
+            </div>
+          ) : (
+            <p className="leading-relaxed text-stone-700">解説を準備中です。</p>
+          )}
           <p className="mt-2 text-xs text-amber-900">絵札・読み札とは別の独自学習メモです。群馬県が作成した解説文ではありません。</p>
         </section>
         <section className="mt-4 border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">

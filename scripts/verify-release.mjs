@@ -113,13 +113,16 @@ async function verifyLocalData() {
   }
 
   const invalidCommentary = CARDS.filter((card) => !verificationKeys.has(card.commentaryVerification));
-  const commentaryWithText = CARDS.filter((card) => card.sampleCommentary.trim().length > 0);
+  const commentaryWithText = CARDS.filter((card) => (
+    card.commentarySummary.trim().length > 0
+    && card.commentarySections.length > 0
+  ));
   const commentaryCounts = Object.fromEntries([...verificationKeys].map((key) => [key, 0]));
   for (const card of CARDS) commentaryCounts[card.commentaryVerification] += 1;
   if (invalidCommentary.length === 0 && commentaryWithText.length === 44) {
     pass('44枚の解説状態', `分類済み / ${JSON.stringify(commentaryCounts)}`);
   } else {
-    fail('44枚の解説状態', `分類不正=${invalidCommentary.map((card) => card.slug).join(', ') || 'なし'} / 解説あり=${commentaryWithText.length}`);
+    fail('44枚の解説状態', `分類不正=${invalidCommentary.map((card) => card.slug).join(', ') || 'なし'} / 構造化解説あり=${commentaryWithText.length}`);
   }
 
   const distIndexPath = resolve(ROOT, 'dist', 'index.html');
