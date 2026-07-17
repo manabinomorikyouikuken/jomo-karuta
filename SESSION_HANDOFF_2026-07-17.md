@@ -8,8 +8,8 @@
 
 ## Gitと公開の現在地
 
-- `main`: `0ed30a8 feat: strengthen commentary quality and reading flow`
-- `origin/main`: `0ed30a8`（mainと一致）
+- 実装コミット: `0ed30a8 feat: strengthen commentary quality and reading flow`
+- `main` / `origin/main`: 上記実装とこの引き継ぎ更新を含む。再開時は `git log -3 --oneline` で先端を確認する
 - `gh-pages`: `60ad1ad deploy: publish commentary reading improvements`
 - 公開版: 保守・表示改善まで反映済み。公開検証14項目すべて合格
 - 未追跡の `docs/` は既存の別資料。内容を確認せず、`git add .` で巻き込まない。
