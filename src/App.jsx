@@ -79,7 +79,7 @@ const writeReviewKanas = (kanas) => {
   }
 };
 
-const emptyLearningRecord = () => ({ cards: {}, history: [], sessions: [] });
+const emptyLearningRecord = () => ({ cards: {}, history: [], sessions: [], dailyCompletions: [] });
 
 const readLearningRecord = () => {
   if (typeof window === 'undefined') return emptyLearningRecord();
@@ -89,6 +89,9 @@ const readLearningRecord = () => {
       cards: stored?.cards && typeof stored.cards === 'object' ? stored.cards : {},
       history: Array.isArray(stored?.history) ? stored.history.slice(-200) : [],
       sessions: Array.isArray(stored?.sessions) ? stored.sessions.slice(-30) : [],
+      dailyCompletions: Array.isArray(stored?.dailyCompletions)
+        ? stored.dailyCompletions.filter((key) => typeof key === 'string').slice(-400)
+        : [],
     };
   } catch {
     return emptyLearningRecord();
@@ -114,6 +117,25 @@ const addDaysToDateKey = (dateKey, days) => {
 };
 
 const formatDateKey = (dateKey) => dateKey ? dateKey.replaceAll('-', '/') : '未設定';
+
+const getDailyStreak = (dailyCompletions) => {
+  const days = new Set(dailyCompletions);
+  const today = getTokyoDateKey();
+  let dateKey = days.has(today) ? today : addDaysToDateKey(today, -1);
+  let streak = 0;
+  while (days.has(dateKey)) {
+    streak += 1;
+    dateKey = addDaysToDateKey(dateKey, -1);
+  }
+  return streak;
+};
+
+const getCardFromHash = () => {
+  if (typeof window === 'undefined') return null;
+  const match = window.location.hash.match(/^#\/card\/([a-z0-9-]+)$/);
+  if (!match) return null;
+  return CARDS.find((card) => card.slug === match[1]) || null;
+};
 
 const getCardLearning = (record, card) => record.cards[card.slug] || {
   attempts: 0,
@@ -198,6 +220,25 @@ function LearningStatsView({ cards, learningRecord, onSelect }) {
             <div className="mt-2 text-xl font-bold text-stone-900">{value}</div>
           </div>
         ))}
+      </section>
+
+      <section className="mb-6 border border-stone-300 bg-white p-5">
+        <h3 className="mb-3 text-lg font-bold">今日の10枚</h3>
+        {learningRecord.dailyCompletions.length === 0 ? (
+          <p className="text-sm leading-relaxed text-stone-600">まだ完走記録がありません。一覧の「今日の10枚」を最後まで見ると、ここに記録されます。</p>
+        ) : (
+          <div className="flex flex-wrap items-center gap-6 text-sm text-stone-600">
+            <span>
+              <span className="mr-1 text-2xl font-bold text-red-700">{getDailyStreak(learningRecord.dailyCompletions)}</span>日連続
+            </span>
+            <span>
+              累計 <span className="font-bold text-stone-900">{learningRecord.dailyCompletions.length}</span>日
+            </span>
+            <span className={learningRecord.dailyCompletions.includes(today) ? 'text-emerald-700' : 'text-red-700'}>
+              {learningRecord.dailyCompletions.includes(today) ? '今日の分は完走済み' : '今日の分はまだです'}
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="mb-6 border border-stone-300 bg-white p-5">
@@ -286,8 +327,8 @@ function LearningStatsView({ cards, learningRecord, onSelect }) {
 }
 
 export default function App() {
-  const [view, setView] = useState('list');
-  const [selectedCard, setSelectedCard] = useState(null);
+  const [view, setView] = useState(() => (getCardFromHash() ? 'detail' : 'list'));
+  const [selectedCard, setSelectedCard] = useState(() => getCardFromHash());
   const [filter, setFilter] = useState('all');
   const [difficulty, setDifficulty] = useState('normal');
   const [quizMode, setQuizMode] = useState('verseToKana');
@@ -308,6 +349,20 @@ export default function App() {
   const [flashOrder, setFlashOrder] = useState([]);
   const [flashTitle, setFlashTitle] = useState('フラッシュカード');
   const [flashKind, setFlashKind] = useState('all');
+
+  useEffect(() => {
+    const applyHash = () => {
+      const card = getCardFromHash();
+      if (card) {
+        setSelectedCard(card);
+        setView('detail');
+      } else {
+        setView((current) => (current === 'detail' ? 'list' : current));
+      }
+    };
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
 
   const filteredCards = useMemo(
     () => (filter === 'all' ? CARDS : CARDS.filter((card) => card.category === filter)),
@@ -475,10 +530,24 @@ export default function App() {
     startFlashSession(getDailyCards(), '今日の10枚', 'daily');
   };
 
+  const recordDailyCompletion = () => {
+    setLearningRecord((current) => {
+      const today = getTokyoDateKey();
+      if (current.dailyCompletions.includes(today)) return current;
+      const nextRecord = {
+        ...current,
+        dailyCompletions: [...current.dailyCompletions, today].slice(-400),
+      };
+      writeLearningRecord(nextRecord);
+      return nextRecord;
+    });
+  };
+
   const nextFlash = () => {
     if (flashIndex + 1 >= flashOrder.length) {
       if (flashKind === 'daily') {
-        startDailyFlash();
+        recordDailyCompletion();
+        setView('daily-complete');
       } else {
         startFlash();
       }
@@ -490,6 +559,14 @@ export default function App() {
   const openCard = (card) => {
     setSelectedCard(card);
     setView('detail');
+    window.location.hash = `/card/${card.slug}`;
+  };
+
+  const closeCard = () => {
+    if (window.location.hash.startsWith('#/card/')) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    setView('list');
   };
 
   return (
@@ -532,7 +609,16 @@ export default function App() {
           />
         )}
         {view === 'detail' && selectedCard && (
-          <DetailView card={selectedCard} onBack={() => setView('list')} />
+          <DetailView card={selectedCard} onBack={closeCard} />
+        )}
+        {view === 'daily-complete' && (
+          <DailyCompleteView
+            streak={getDailyStreak(learningRecord.dailyCompletions)}
+            totalDays={learningRecord.dailyCompletions.length}
+            onRestart={startDailyFlash}
+            onHome={() => setView('list')}
+            onQuiz={() => setView('quiz-select')}
+          />
         )}
         {view === 'flash' && flashOrder.length > 0 && (
           <FlashView
@@ -940,6 +1026,27 @@ function FlashView({ card, index, total, title, onNext, onExit }) {
       <div className={`mt-6 flex gap-4 transition-opacity duration-300 ${revealed ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
         <button type="button" onClick={onExit} className="flex-1 border border-stone-300 bg-white py-3 text-sm">やめる</button>
         <button type="button" onClick={onNext} className="flex-1 bg-stone-900 py-3 text-stone-50">次のカード →</button>
+      </div>
+    </div>
+  );
+}
+
+function DailyCompleteView({ streak, totalDays, onRestart, onHome, onQuiz }) {
+  return (
+    <div className="mx-auto max-w-md text-center">
+      <h2 className="mb-8 text-2xl">今日の10枚</h2>
+      <div className="mb-6 border border-stone-300 bg-white p-10">
+        <div className="mb-4 text-xl">今日の分、完走！</div>
+        <div className="mb-2 text-6xl font-bold text-red-700">
+          {streak}<span className="text-2xl">日連続</span>
+        </div>
+        <p className="mt-4 text-sm text-stone-600">これまでに完走した日数：{totalDays}日</p>
+        <p className="mt-2 text-xs text-stone-500">明日になると、新しい10枚が選ばれます。</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <button type="button" onClick={onHome} className="border border-stone-300 bg-white py-3 text-sm">一覧に戻る</button>
+        <button type="button" onClick={onRestart} className="border border-stone-300 bg-white py-3 text-sm">もう一周</button>
+        <button type="button" onClick={onQuiz} className="bg-red-700 py-3 text-sm text-stone-50">クイズに挑戦</button>
       </div>
     </div>
   );
