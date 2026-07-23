@@ -572,12 +572,12 @@ export default function App() {
   return (
     <div
       className="min-h-screen bg-stone-50 text-stone-900"
-      style={{ fontFamily: '"Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Hiragino Mincho Pro", serif' }}
+      style={{ fontFamily: '"Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif' }}
     >
       <header className="sticky top-0 z-10 border-b border-stone-300 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl tracking-wider">
+            <h1 className="title-dela text-3xl tracking-wide">
               <span className="text-red-700">上毛</span>かるた
             </h1>
             <p className="mt-1 text-xs text-stone-500">

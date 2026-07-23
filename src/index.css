@@ -3,6 +3,45 @@
 @tailwind utilities;
 
 /*
+ * タイトル「上毛かるた」専用の見出し書体。Dela Gothic One（SIL OFL 1.1）を
+ * この5文字だけにサブセット化して同梱（public/fonts/、ライセンスは同ディレクトリ OFL.txt）。
+ * 昭和レトロの極太ゴシックで、本物の箱の力強さの雰囲気だけを借りる。
+ * 公式パッケージの「赤帯・白抜き・縦組み」は再現せず、横書き・2色で別物にしている。
+ */
+@font-face {
+  font-family: 'Dela Gothic Jomo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/jomo-karuta/fonts/dela-gothic-one-jomo.woff2') format('woff2');
+  unicode-range: U+304b, U+305f, U+308b, U+4e0a, U+6bdb;
+}
+
+.title-dela {
+  font-family: 'Dela Gothic Jomo', 'Hiragino Kaku Gothic ProN', sans-serif;
+}
+
+/*
+ * 本文書体。Zen Maru Gothic（SIL OFL 1.1）を、アプリで実際に使う文字（1732字）だけに
+ * サブセット化して同梱（public/fonts/、ライセンスは同ディレクトリ Zen-Maru-Gothic-OFL.txt）。
+ * 角の取れた丸ゴシックで、明朝の硬さをやわらげ、親しみやすくする。CDN非依存のローカル埋め込み。
+ */
+@font-face {
+  font-family: 'Zen Maru Gothic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/jomo-karuta/fonts/zenmarugothic-subset-regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Zen Maru Gothic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/jomo-karuta/fonts/zenmarugothic-subset-bold.woff2') format('woff2');
+}
+
+/*
  * Official picture-card scans use a 535x670 canvas. Use that ratio for the
  * paired detail frame so picture and reading cards share the same display
  * width. Keep every source image in its original proportions with
